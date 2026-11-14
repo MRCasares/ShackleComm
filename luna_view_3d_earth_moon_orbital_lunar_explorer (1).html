@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LUNA-VIEW — 3D/2D Earth-Moon Orbital, Lighting, Comms &amp; Site Explorer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js r128 & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050811;
+      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+    }
+    .glass {
+      background: rgba(10, 15, 28, 0.84);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.62);
+    }
+    .mono {
+      font-variant-numeric: tabular-nums;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    input[type="date"],
+    input[type="number"],
+    select {
+      color-scheme: dark;
+    }
+    /* Custom compact range scrubber */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 999px;
+      background: #1e293b;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #050811;
+      margin-top: -4px;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.85);
+      transition: transform 0.12s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+    input[type="range"]::-moz-range-track {
+      height: 5px;
+      border-radius: 999px;
+      background: #1e293b;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #050811;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.85);
+    }
+    canvas {
+      display: block;
+      outline: none;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.6);
+    }
+  </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden bg-[#050811]">
+
+  <!-- ======================================================================= -->
+  <!-- 1. FULL-VIEWPORT INTERACTIVE LUNAR STAGE (3D GLOBE & 2D PROJECTIONS)    -->
+  <!-- ======================================================================= -->
+  <div id="stage-3d" class="fixed inset-0 w-full h-full cursor-grab active:cursor-grabbing"></div>
+  <canvas id="stage-2d" class="fixed inset-0 w-full h-full hidden cursor-crosshair"></canvas>
+
+  <!-- Subtle Bottom Stage Legend, Camera Focus & Orbit Toggles Pill -->
+  <div class="fixed bottom-3 left-1/2 -translate-x-1/2 z-10 hidden lg:flex items-center gap-2.5 glass rounded-full px-3.5 py-1 text-[11px] text-slate-300">
+    <!-- Camera Focus Switcher -->
+    <div class="flex items-center gap-1 bg-slate-900/90 rounded-full p-0.5 border border-slate-800" title="Switch 3D Camera Target">
+      <button type="button" id="focus-moon-btn" onclick="setCameraFocus('moon')"
+        class="px-2 py-0.5 rounded-full font-semibold bg-sky-500 text-slate-950 transition">
+        Focus: Moon
+      </button>
+      <button type="button" id="focus-system-btn" onclick="setCameraFocus('system')"
+        class="px-2 py-0.5 rounded-full font-medium text-slate-300 hover:text-white transition">
+        Earth-Moon
+      </button>
+    </div>
+
+    <span class="text-slate-600 pointer-events-none">•</span>
+    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-white ring-2 ring-amber-400"></span>Cursor</span>
+    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pin A</span>
+    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-sky-400"></span>Pin B</span>
+    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Pin C</span>
+    <span class="text-slate-600 pointer-events-none">•</span>
+
+    <!-- Relay Orbits Toggle -->
+    <button id="toggle-orbits-btn" type="button" onclick="toggleSatelliteOrbits()"
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/40 font-medium transition">
+      <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+      <span id="orbits-btn-label">Relay Sats: ON</span>
+    </button>
+
+    <!-- Earth-Moon Orbit & DTE Vector Toggle -->
+    <button id="toggle-dte-beam-btn" type="button" onclick="toggleDteBeam()"
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 font-medium transition">
+      <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+      <span id="dte-beam-label">Earth Link: ON</span>
+    </button>
+
+    <span class="text-slate-600 pointer-events-none">•</span>
+    <span id="lunar-phase-pill" class="mono text-amber-300 font-medium pointer-events-none">Waxing Crescent</span>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- 2. COMPACT TOP FLOATING BAR: VIEW SWITCHER, DATE & PLAYBACK CONTROLS    -->
+  <!-- ======================================================================= -->
+  <header class="fixed top-3 left-1/2 -translate-x-1/2 z-20 glass rounded-full px-3 py-1.5 flex items-center gap-2 text-xs max-w-[97vw]">
+    <!-- Mobile Left Drawer Button -->
+    <button id="toggle-left-btn" type="button" title="Toggle Recommendations & Comparison"
+      class="md:hidden p-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/70">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"/>
+      </svg>
+    </button>
+
+    <!-- Brand Title -->
+    <div class="flex items-center gap-1.5 pr-2 border-r border-slate-700/70 shrink-0">
+      <span class="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"></span>
+      <span class="font-semibold tracking-wide text-slate-100 hidden sm:inline">LUNA-VIEW</span>
+    </div>
+
+    <!-- 3-Mode Map View Switcher -->
+    <nav class="flex bg-slate-900/90 rounded-full p-0.5 border border-slate-800 shrink-0" aria-label="Lunar View Mode">
+      <button type="button" data-view="globe" class="view-btn px-2.5 py-1 rounded-full font-medium transition bg-sky-500 text-slate-950">
+        3D Orbit
+      </button>
+      <button type="button" data-view="pole" class="view-btn px-2.5 py-1 rounded-full font-medium transition text-slate-300 hover:text-white">
+        2D South Pole
+      </button>
+      <button type="button" data-view="global" class="view-btn px-2.5 py-1 rounded-full font-medium transition text-slate-300 hover:text-white">
+        2D Global
+      </button>
+    </nav>
+
+    <!-- Compact Camera Focus Toggle for Tablet/Mobile -->
+    <button type="button" id="mobile-focus-btn" onclick="toggleCameraFocus()" title="Switch 3D Camera Focus (Moon vs Earth-Moon System)"
+      class="lg:hidden px-2 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-sky-300 border border-slate-700/80 font-medium shrink-0">
+      Moon Cam
+    </button>
+
+    <!-- Start Date & Day Stepping -->
+    <div class="flex items-center gap-1 pl-2 border-l border-slate-700/70 shrink-0">
+      <input id="date-input" type="date" min="2020-01-01" max="2035-12-31" aria-label="Window Start Date"
+        class="bg-slate-900/90 border border-slate-700/80 rounded-lg px-2 py-1 text-slate-100 mono text-[11px] focus:outline-none focus:border-sky-400" />
+      <button type="button" onclick="stepStartDate(-1)" title="Shift Window -1 Day"
+        class="hidden sm:inline px-1.5 py-1 rounded-lg bg-slate-800/85 hover:bg-slate-700 text-slate-300 hover:text-white mono transition">
+        -1d
+      </button>
+      <button type="button" onclick="stepStartDate(1)" title="Shift Window +1 Day"
+        class="hidden sm:inline px-1.5 py-1 rounded-lg bg-slate-800/85 hover:bg-slate-700 text-slate-300 hover:text-white mono transition">
+        +1d
+      </button>
+    </div>
+
+    <!-- Animated Day-by-Day Playback Button & Speed -->
+    <div class="flex items-center gap-1 pl-2 border-l border-slate-700/70 shrink-0">
+      <button id="play-btn" type="button" onclick="togglePlay()" title="Animate day-by-day across selected timeframe"
+        class="px-2.5 py-1 rounded-full font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1 transition">
+        <span id="play-icon">▶</span>
+        <span id="play-label">Play</span>
+      </button>
+      <button id="speed-btn" type="button" onclick="cyclePlaySpeed()" title="Playback Speed"
+        class="px-1.5 py-1 rounded-lg bg-slate-800/85 hover:bg-slate-700 text-slate-300 mono text-[10px] transition">
+        1x
+      </button>
+    </div>
+
+    <!-- Help & Methodology Modal Button ('?') -->
+    <button id="help-btn" type="button" title="Data Sources, Earth-Moon Orbital Mechanics & Relay Satellites"
+      class="ml-0.5 w-6 h-6 rounded-full bg-slate-800 hover:bg-sky-500 hover:text-slate-950 border border-slate-600/70 font-bold text-slate-200 flex items-center justify-center transition shrink-0">
+      ?
+    </button>
+
+    <!-- Mobile Right Drawer Button -->
+    <button id="toggle-right-btn" type="button" title="Toggle Telemetry & Stats"
+      class="md:hidden p-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/70">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- 3. LEFT FLOATING PANEL: RECOMMENDATIONS, SITES & MULTI-POINT COMPARISON -->
+  <!-- ======================================================================= -->
+  <aside id="left-panel"
+    class="fixed top-16 left-3 z-20 glass rounded-2xl p-3 w-72 max-h-[calc(100vh-4.75rem)] flex flex-col gap-2.5 text-xs transition-transform duration-200">
+    <!-- Top Tabs: Best South Pole | All Sites | Compare -->
+    <div class="grid grid-cols-3 bg-slate-900/90 p-0.5 rounded-xl border border-slate-800 text-[11px]">
+      <button type="button" data-tab="recommend"
+        class="left-tab py-1.5 px-1 rounded-lg font-semibold bg-sky-500 text-slate-950 transition">
+        Best Pole
+      </button>
+      <button type="button" data-tab="sites"
+        class="left-tab py-1.5 px-1 rounded-lg font-medium text-slate-300 hover:text-white transition">
+        All Sites
+      </button>
+      <button type="button" data-tab="compare" id="compare-tab-btn"
+        class="left-tab py-1.5 px-1 rounded-lg font-medium text-slate-300 hover:text-white transition">
+        Compare (2)
+      </button>
+    </div>
+
+    <!-- TAB 1: SOUTH POLE RECOMMENDATIONS FOR SELECTED TIMEFRAME -->
+    <div id="tab-recommend" class="flex flex-col gap-2 overflow-y-auto pr-0.5">
+      <div class="flex items-center justify-between text-[10px] text-slate-400">
+        <span>Top South Pole sites for active window</span>
+        <span id="tex-badge" class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          NASA LRO
+        </span>
+      </div>
+      <div id="recommend-list" class="flex flex-col gap-1.5"></div>
+    </div>
+
+    <!-- TAB 2: ALL CURATED SITES & CUSTOM COORDINATE ENTRY -->
+    <div id="tab-sites" class="hidden flex-col gap-2 overflow-y-auto pr-0.5">
+      <div id="site-list" class="flex flex-col gap-1 max-h-56 overflow-y-auto"></div>
+
+      <div class="pt-2 border-t border-slate-700/60">
+        <div class="text-[10px] text-slate-400 mb-1.5">Click anywhere on Moon or enter custom coords:</div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <label class="flex flex-col gap-0.5">
+            <span class="text-[10px] text-slate-400">Lat (°N / -°S)</span>
+            <input id="lat-input" type="number" step="0.01" min="-90" max="90"
+              class="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1 mono text-slate-100 text-xs focus:outline-none focus:border-sky-400" />
+          </label>
+          <label class="flex flex-col gap-0.5">
+            <span class="text-[10px] text-slate-400">Lon (°E / -°W)</span>
+            <input id="lon-input" type="number" step="0.01" min="-180" max="180"
+              class="bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1 mono text-slate-100 text-xs focus:outline-none focus:border-sky-400" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MULTI-POINT PIN COMPARISON (UP TO 3 POINTS: A, B, C) -->
+    <div id="tab-compare" class="hidden flex-col gap-2.5 overflow-y-auto pr-0.5">
+      <div class="flex items-center justify-between text-[10px] text-slate-400">
+        <span>Side-by-side timeframe averages</span>
+        <button type="button" onclick="pinCurrentLocation()"
+          class="px-2 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 font-semibold transition">
+          + Pin Active
+        </button>
+      </div>
+
+      <div id="compare-cards" class="flex flex-col gap-2"></div>
+
+      <div class="text-[10px] text-slate-400 bg-slate-900/75 p-2 rounded-lg border border-slate-800 leading-relaxed">
+        Tip: Click any point on the 3D Moon or 2D maps and press <strong>+ Pin</strong> to compare up to 3 locations simultaneously.
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================================================================= -->
+  <!-- 4. RIGHT FLOATING PANEL: LIVE TELEMETRY, TIMEFRAME STATS & SCRUBBER     -->
+  <!-- ======================================================================= -->
+  <aside id="right-panel"
+    class="fixed top-16 right-3 z-20 glass rounded-2xl p-3.5 w-80 max-h-[calc(100vh-4.75rem)] overflow-y-auto flex flex-col gap-2.5 text-xs transition-transform duration-200">
+    <!-- Active Site Header + Pin Action -->
+    <div class="flex items-start justify-between gap-2">
+      <div class="min-w-0">
+        <h2 id="site-title" class="font-semibold text-sm text-white truncate">Shackleton Rim (Ridge)</h2>
+        <div id="site-subtitle" class="text-[11px] text-slate-400 mono mt-0.5">-89.45° S, -137.31° W · Elev +1.8 km</div>
+      </div>
+      <button id="pin-active-btn" type="button" onclick="pinCurrentLocation()"
+        class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 transition">
+        + Pin
+      </button>
+    </div>
+
+    <!-- Instantaneous Sunlight & Direct-to-Earth Status Cards -->
+    <div class="grid grid-cols-2 gap-2">
+      <div id="sun-card" class="rounded-xl p-2 border border-amber-400/30 bg-amber-500/10 transition-colors">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">Sunlight</span>
+          <span id="sun-flux-live" class="text-[10px] mono text-amber-300 font-semibold">296 W/m²</span>
+        </div>
+        <div id="sun-status" class="font-bold text-sm text-amber-300 mt-0.5">ILLUMINATED</div>
+        <div id="sun-detail" class="text-[10px] text-slate-300 mono mt-0.5">El +1.4° (Rim -0.4°)</div>
+        <div id="sun-next" class="text-[10px] text-amber-200/80 mono mt-1 pt-1 border-t border-amber-500/20">Sunset in 9.4d</div>
+      </div>
+
+      <div id="earth-card" class="rounded-xl p-2 border border-sky-400/30 bg-sky-500/10 transition-colors">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">Earth DTE</span>
+          <span id="earth-lib-live" class="text-[10px] mono text-sky-300">Lib +4.2°</span>
+        </div>
+        <div id="earth-status" class="font-bold text-sm text-sky-300 mt-0.5">LINE OF SIGHT</div>
+        <div id="earth-detail" class="text-[10px] text-slate-300 mono mt-0.5">El +4.8° (Rim +0.2°)</div>
+        <div id="earth-next" class="text-[10px] text-sky-200/80 mono mt-1 pt-1 border-t border-sky-500/20">Clear &gt; 14d</div>
+      </div>
+    </div>
+
+    <!-- Live Relay Satellite Constellation Link Card -->
+    <div id="relay-card" class="rounded-xl p-2 border border-violet-400/35 bg-violet-500/10 transition-colors">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] uppercase tracking-wider text-violet-300 font-semibold">🛰 Relay Satellites (LunaNet / LCRNS)</span>
+        <span id="relay-count-live" class="text-[10px] mono px-1.5 py-0.2 rounded bg-violet-500/20 text-violet-200 border border-violet-400/30">2/4 Overhead</span>
+      </div>
+      <div id="relay-status" class="font-semibold text-xs text-white mono mt-1 truncate">
+        LCRNS-1 (+64.2°) · Pathfinder (+41.8°)
+      </div>
+      <div id="relay-detail" class="text-[10px] text-slate-300 mono mt-0.5">
+        Mask ≥5.0° El · Active Comms: DTE + Relay
+      </div>
+    </div>
+
+    <!-- Timeframe Selector + Interactive Day-by-Day Scrubber -->
+    <div class="bg-slate-900/85 rounded-xl p-2.5 border border-slate-800 space-y-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Timeframe Window</span>
+        <div class="flex bg-slate-950 rounded-lg p-0.5 border border-slate-800 text-[10px] mono">
+          <button type="button" data-dur="7" class="dur-btn px-1.5 py-0.5 rounded text-slate-400 hover:text-white">7d</button>
+          <button type="button" data-dur="14" class="dur-btn px-1.5 py-0.5 rounded bg-sky-500 text-slate-950 font-semibold">14d</button>
+          <button type="button" data-dur="29.530589" class="dur-btn px-1.5 py-0.5 rounded text-slate-400 hover:text-white">29.5d</button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between text-[10px] mono">
+        <span id="sim-utc-readout" class="text-slate-200 font-medium">2026-11-14 12:00 UTC</span>
+        <span id="sim-offset-readout" class="text-sky-300">+0.0d / 14.0d</span>
+      </div>
+
+      <!-- Triple Sunlight + Earth DTE + Relay Sat Availability Strip -->
+      <div class="space-y-1 pt-0.5">
+        <canvas id="window-strip-canvas" width="260" height="24" class="w-full h-[24px] rounded border border-slate-800"></canvas>
+        <input id="time-scrubber" type="range" min="0" max="1" step="0.002" value="0" aria-label="Scrub through timeframe" class="w-full" />
+      </div>
+
+      <div class="flex justify-between text-[9px] text-slate-400">
+        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-amber-400 inline-block rounded-xs"></span>Sun Lit</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-sky-400 inline-block rounded-xs"></span>Earth DTE</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-violet-400 inline-block rounded-xs"></span>Relay Sat</span>
+      </div>
+    </div>
+
+    <!-- Timeframe Averages & Availability Summary -->
+    <div class="bg-slate-900/85 rounded-xl p-2.5 border border-slate-800 space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Window Averages &amp; Availability</span>
+        <span id="avg-score-badge" class="text-[10px] mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          Score 91/100
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+        <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
+          <div class="text-[9px] text-slate-400">Avg Sunlight</div>
+          <div id="stat-sun-avg" class="mono font-bold text-amber-300 mt-0.5">85.0% (286h)</div>
+        </div>
+        <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
+          <div class="text-[9px] text-slate-400">Direct Earth (DTE)</div>
+          <div id="stat-earth-avg" class="mono font-bold text-sky-300 mt-0.5">96.4% (324h)</div>
+        </div>
+        <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
+          <div class="text-[9px] text-slate-400">Relay Sat Coverage</div>
+          <div id="stat-relay-avg" class="mono font-bold text-violet-300 mt-0.5">98.5% (331h)</div>
+        </div>
+        <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
+          <div class="text-[9px] text-slate-400">Sun + Comms Overlap</div>
+          <div id="stat-overlap-avg" class="mono font-bold text-emerald-300 mt-0.5">85.0% (286h)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 360° Local Terrain Horizon Elevation Mini-Plot -->
+    <div class="bg-slate-900/85 rounded-xl p-2 border border-slate-800">
+      <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+        <span>360° Local Terrain Horizon</span>
+        <span class="mono"><span class="text-amber-400">☀ Sun</span> · <span class="text-sky-400">● Earth</span> · <span class="text-violet-400">🛰 Sat</span></span>
+      </div>
+      <canvas id="horizon-canvas" width="260" height="66" class="w-full h-[66px] rounded"></canvas>
+      <div class="flex justify-between text-[9px] mono text-slate-500 mt-0.5">
+        <span>0°N</span>
+        <span>90°E</span>
+        <span>180°S</span>
+        <span>270°W</span>
+        <span>360°</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================================================================= -->
+  <!-- 5. HELP & DATA VERIFICATION MODAL ('?')                                 -->
+  <!-- ======================================================================= -->
+  <div id="help-modal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="glass rounded-2xl max-w-xl w-full max-h-[85vh] overflow-y-auto p-5 text-xs leading-relaxed text-slate-200 border border-slate-700">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700/80">
+        <h3 class="text-base font-bold text-white">Earth-Moon Orbital Mechanics, Data &amp; Relay Satellites</h3>
+        <button id="close-help" type="button"
+          class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition">
+          Close
+        </button>
+      </div>
+
+      <div class="space-y-3.5 mt-3.5">
+        <div>
+          <h4 class="font-semibold text-sky-300 uppercase tracking-wider text-[11px]">
+            1. 3D Earth-Moon Orbital Frame &amp; Tidal Locking
+          </h4>
+          <p class="text-slate-300 mt-1">
+            • <strong>Geocentric Ecliptic Frame:</strong> Earth sits at the scene origin with its <span class="mono text-slate-100">23.44°</span> axial obliquity and UTC sidereal rotation, while the Sun illuminates the Earth-Moon system along the true ecliptic solar vector.<br/>
+            • <strong>Moon Orbit &amp; Tidal Locking:</strong> The Moon revolves around Earth along its <span class="mono text-slate-100">5.145°</span> inclined orbit (<span class="mono text-slate-100">27.32d</span> sidereal / <span class="mono text-slate-100">29.53d</span> synodic phase cycle). Its <span class="mono text-slate-100">MOON_ME</span> prime meridian (<span class="mono text-slate-100">0° Lon</span>) remains tidally locked toward Earth while exhibiting real optical libration (<span class="mono text-slate-100">±7.6°</span> longitude, <span class="mono text-slate-100">±6.68°</span> latitude), producing authentic lunar phases as you scrub or press Play.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-amber-300 uppercase tracking-wider text-[11px]">
+            2. NASA Lunar Datasets &amp; Airless Horizon Model
+          </h4>
+          <p class="text-slate-300 mt-1">
+            • <strong>Surface Imagery &amp; Sites:</strong> NASA SVS LRO/LOLA <span class="mono text-slate-100">lroc_color_2k.jpg</span> and IAU <span class="mono text-slate-100">MOON_ME</span> coordinates for NASA Artemis III candidate sites, LOLA South Pole catalogs, and Apollo/CLPS/Chandrayaan/Chang’e missions.<br/>
+            • <strong>Airless Line-of-Sight:</strong> With zero atmosphere, visibility requires solar, Earth, or satellite elevation to exceed the 72-sector (<span class="mono">5°</span>) terrain horizon angle <span class="mono">H(Az)</span> accounting for lunar curvature (<span class="mono">R = 1737.4 km</span>).
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-violet-300 uppercase tracking-wider text-[11px]">
+            3. NASA LunaNet / LCRNS Relay Satellites &amp; Frozen Polar Orbits
+          </h4>
+          <p class="text-slate-300 mt-1">
+            • <strong>Elliptical Lunar Frozen Orbits (ELFO):</strong> Three phased LCRNS ELFO spacecraft (<span class="mono text-slate-100">a = 10,935 km, i = 54.5°, e = 0.661, ω = 90°, T = 27.7h</span>) plus ESA/NASA’s <span class="mono text-slate-100">Lunar Pathfinder</span> (<span class="mono text-slate-100">a = 5,740 km, i = 57.8°, e = 0.610, T = 12.0h</span>) orbit the Moon in its moving frame, lingering over the South Pole above a <span class="mono text-slate-100">5.0°</span> elevation mask.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-emerald-300 uppercase tracking-wider text-[11px]">
+            4. How to Independently Verify Results
+          </h4>
+          <p class="text-slate-300 mt-1">
+            • <strong>NASA JPL Horizons (<span class="mono text-sky-300">ssd.jpl.nasa.gov/horizons</span>):</strong> Set Target to <span class="mono">Sun [10]</span> or <span class="mono">Earth [399]</span>, Observer to <span class="mono">@301</span> (Moon) at your pin’s Lat/Lon, and request Table #4 (Apparent Azimuth &amp; Elevation).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Non-blocking Toast Feedback -->
+  <div id="toast"
+    class="fixed bottom-4 right-4 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-200 glass rounded-xl px-3.5 py-2 text-xs text-slate-100 border border-sky-400/40 flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+    <span id="toast-msg">Pinned location</span>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- 6. APPLICATION LOGIC: EPHEMERIS, EARTH-MOON ORBIT, RELAYS & 3D/2D STAGE -->
+  <!-- ======================================================================= -->
+  <script>
+    "use strict";
+
+    // =========================================================================
+    // 1. CURATED LUNAR SITES (10 SOUTH POLE CANDIDATES + GLOBAL BENCHMARKS)
+    // =========================================================================
+    const SITES = [
+      { id: "shackleton_ridge", name: "Shackleton Rim (Ridge)", tag: "Artemis III", pole: true, lat: -89.45, lon: -137.31, elev: 1.85 },
+      { id: "mons_mouton", name: "Mons Mouton Plateau", tag: "VIPER / Artemis", pole: true, lat: -84.95, lon: 31.00, elev: 5.20 },
+      { id: "malapert_massif", name: "Malapert Massif", tag: "Artemis III", pole: true, lat: -85.98, lon: -2.70, elev: 4.90 },
+      { id: "peak_shackleton", name: "Peak Near Shackleton", tag: "Artemis III", pole: true, lat: -89.02, lon: 126.27, elev: 2.10 },
+      { id: "nobile_rim_1", name: "Nobile Rim 1", tag: "Artemis / CLPS", pole: true, lat: -85.46, lon: 36.36, elev: 1.45 },
+      { id: "haworth_ridge", name: "Haworth Ridge", tag: "Artemis III", pole: true, lat: -87.45, lon: 12.20, elev: 1.95 },
+      { id: "amundsen_rim", name: "Amundsen Rim", tag: "Artemis III", pole: true, lat: -84.50, lon: 82.80, elev: 1.70 },
+      { id: "de_gerlache_rim", name: "de Gerlache Rim 2", tag: "Artemis III", pole: true, lat: -88.35, lon: -68.20, elev: 1.60 },
+      { id: "im1", name: "Malapert A (IM-1)", tag: "CLPS Landed", pole: true, lat: -80.13, lon: 1.44, elev: 0.60 },
+      { id: "shackleton_floor", name: "Shackleton Crater Floor", tag: "PSR Ice Trap", pole: true, lat: -89.80, lon: 0.00, elev: -4.20 },
+      { id: "cy3", name: "Statio Shiv Shakti", tag: "Chandrayaan-3", pole: false, lat: -69.37, lon: 32.32, elev: -0.40 },
+      { id: "apollo11", name: "Tranquility Base", tag: "Apollo 11", pole: false, lat: 0.67, lon: 23.47, elev: -1.90 },
+      { id: "ce4", name: "Von Kármán (Far Side)", tag: "Chang’e 4", pole: false, lat: -45.46, lon: 177.60, elev: -5.90 }
+    ];
+
+    // NASA LCRNS / LunaNet & ESA Lunar Pathfinder Relay Satellites (Frozen Polar Orbits, ω = 90°)
+    const RELAY_SATELLITES = [
+      {
+        id: "LCRNS-1",
+        name: "LCRNS-1 (ELFO-A)",
+        aKm: 10935,
+        e: 0.661,
+        incDeg: 54.5,
+        raanDeg: 15,
+        argPeDeg: 90,
+        meanAnom0Deg: 165,
+        periodHours: 27.7,
+        colorHex: 0xa78bfa,
+        cssColor: "#a78bfa"
+      },
+      {
+        id: "LCRNS-2",
+        name: "LCRNS-2 (ELFO-B)",
+        aKm: 10935,
+        e: 0.661,
+        incDeg: 54.5,
+        raanDeg: 135,
+        argPeDeg: 90,
+        meanAnom0Deg: 285,
+        periodHours: 27.7,
+        colorHex: 0xc084fc,
+        cssColor: "#c084fc"
+      },
+      {
+        id: "LCRNS-3",
+        name: "LCRNS-3 (ELFO-C)",
+        aKm: 10935,
+        e: 0.661,
+        incDeg: 54.5,
+        raanDeg: 255,
+        argPeDeg: 90,
+        meanAnom0Deg: 45,
+        periodHours: 27.7,
+        colorHex: 0x38bdf8,
+        cssColor: "#38bdf8"
+      },
+      {
+        id: "Pathfinder",
+        name: "Lunar Pathfinder",
+        aKm: 5740,
+        e: 0.610,
+        incDeg: 57.8,
+        raanDeg: 75,
+        argPeDeg: 90,
+        meanAnom0Deg: 210,
+        periodHours: 12.0,
+        colorHex: 0xf472b6,
+        cssColor: "#f472b6"
+      }
+    ];
+    const RELAY_MIN_EL_DEG = 5.0; // NASA LCRNS Service Volume II elevation mask
+
+    const PIN_COLORS = [
+      { key: "A", hex: "#fbbf24", threeHex: 0xfbbf24, badgeCls: "bg-amber-400 text-slate-950" },
+      { key: "B", hex: "#38bdf8", threeHex: 0x38bdf8, badgeCls: "bg-sky-400 text-slate-950" },
+      { key: "C", hex: "#34d399", threeHex: 0x34d399, badgeCls: "bg-emerald-400 text-slate-950" }
+    ];
+
+    const DEG = Math.PI / 180;
+    const RAD = 180 / Math.PI;
+    const R_MOON = 1737.4;
+
+    // 3D Scene Scale Constants (Geocentric Ecliptic Frame)
+    // Moon radius = 1.0 unit; Earth radius = 2.6 units; Mean Lunar Orbit = 18.5 units
+    const EARTH_RADIUS_3D = 2.55;
+    const MOON_ORBIT_SMA_3D = 18.5;
+    const MOON_ORBIT_ECC = 0.0549;
+    const MOON_ORBIT_INC_RAD = 5.145 * DEG;
+    const MOON_AXIAL_OBLIQUITY_RAD = 1.54 * DEG;
+    const SUN_DISTANCE_3D = 95.0;
+
+    const state = {
+      view: "globe",              // 'globe' | 'pole' | 'global'
+      cameraFocus: "moon",        // 'moon' | 'system'
+      leftTab: "recommend",       // 'recommend' | 'sites' | 'compare'
+      lat: SITES[0].lat,
+      lon: SITES[0].lon,
+      name: SITES[0].name,
+      startDate: new Date("2026-11-14T12:00:00Z"),
+      durationDays: 14,           // 7 | 14 | 29.530589
+      scrubFrac: 0,               // 0..1 across durationDays
+      isPlaying: false,
+      playSpeed: 1,               // 1x or 3x
+      showRelayOrbits: true,
+      showDteBeam: true,
+      lastFrameMs: performance.now(),
+      moonImageData: null,
+      moonImg: null,
+      activeWindowCache: null,
+      pinnedPoints: [
+        { name: "Shackleton Rim (Ridge)", lat: -89.45, lon: -137.31 },
+        { name: "Mons Mouton Plateau", lat: -84.95, lon: 31.00 }
+      ]
+    };
+
+    // =========================================================================
+    // 2. SELENOCENTRIC EPHEMERIS, RELAY PROPAGATION & LOLA HORIZON MODEL
+    // =========================================================================
+    function norm360(deg) {
+      return ((deg % 360) + 360) % 360;
+    }
+
+    function getEphemeris(date) {
+      const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+      const d = (date.getTime() - J2000) / 86400000;
+
+      const synodicPeriod = 29.530588853;
+      const newMoonRef = Date.UTC(2000, 0, 6, 18, 14, 0);
+      const phaseAngle = (((date.getTime() - newMoonRef) / 86400000) / synodicPeriod) * Math.PI * 2;
+      const phaseFrac = (((phaseAngle / (Math.PI * 2)) % 1) + 1) % 1;
+
+      let sunLon = ((Math.PI - phaseAngle) * RAD) % 360;
+      if (sunLon > 180) sunLon -= 360;
+      if (sunLon < -180) sunLon += 360;
+
+      // Sub-solar latitude oscillates +/- 1.54° over draconic year
+      const sunLat = 1.54 * Math.sin(2 * Math.PI * (d / 346.62));
+
+      // Optical libration of Earth around (0° lat, 0° lon)
+      const anomalistic = 2 * Math.PI * (d / 27.55455);
+      const draconic = 2 * Math.PI * (d / 27.21222);
+      const sidereal = 2 * Math.PI * (d / 27.321661);
+      const ascendingNode = 2 * Math.PI * (-d / 6793.5); // 18.6-year nodal regression
+
+      const earthLon = 7.6 * Math.sin(anomalistic);
+      const earthLat = 6.68 * Math.sin(draconic);
+
+      // Geocentric Ecliptic Lon of Sun & Moon (for 3D Earth-Moon-Sun orbital placement)
+      const sunEclipticLon = (280.46 + 0.9856474 * d) * DEG;
+      const moonMeanAnomaly = anomalistic;
+      const moonTrueLon = sunEclipticLon + phaseAngle + 0.055 * Math.sin(moonMeanAnomaly);
+
+      return {
+        d,
+        phaseAngle,
+        phaseFrac,
+        sunLat,
+        sunLon,
+        earthLat,
+        earthLon,
+        sunEclipticLon,
+        moonTrueLon,
+        moonMeanAnomaly,
+        ascendingNode,
+        sidereal
+      };
+    }
+
+    function getLunarPhaseName(phaseFrac) {
+      if (phaseFrac < 0.03 || phaseFrac >= 0.97) return "New Moon";
+      if (phaseFrac < 0.22) return "Waxing Crescent";
+      if (phaseFrac < 0.28) return "First Quarter";
+      if (phaseFrac < 0.47) return "Waxing Gibbous";
+      if (phaseFrac < 0.53) return "Full Moon";
+      if (phaseFrac < 0.72) return "Waning Gibbous";
+      if (phaseFrac < 0.78) return "Last Quarter";
+      return "Waning Crescent";
+    }
+
+    /**
+     * Propagates a Keplerian lunar relay satellite in the MOON_ME selenocentric frame (km).
+     */
+    function propagateRelaySatellite(sat, dateObj) {
+      const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
+      const elapsedHours = (dateObj.getTime() - J2000) / 3600000;
+      const M = norm360(sat.meanAnom0Deg + (360 / sat.periodHours) * elapsedHours) * DEG;
+
+      // Solve Kepler's Equation: E - e * sin(E) = M
+      let E = M + sat.e * Math.sin(M);
+      for (let iter = 0; iter < 5; iter++) {
+        E = E - (E - sat.e * Math.sin(E) - M) / (1 - sat.e * Math.cos(E));
+      }
+
+      const cosE = Math.cos(E);
+      const sinE = Math.sin(E);
+      const rKm = sat.aKm * (1 - sat.e * cosE);
+      const nu = Math.atan2(Math.sqrt(1 - sat.e * sat.e) * sinE, cosE - sat.e);
+
+      const u = nu + sat.argPeDeg * DEG;
+      const inc = sat.incDeg * DEG;
+      const raan = norm360(sat.raanDeg - 0.045 * (elapsedHours / 24)) * DEG;
+
+      const cosO = Math.cos(raan);
+      const sinO = Math.sin(raan);
+      const cosU = Math.cos(u);
+      const sinU = Math.sin(u);
+      const cosI = Math.cos(inc);
+      const sinI = Math.sin(inc);
+
+      const xKm = rKm * (cosO * cosU - sinO * sinU * cosI);
+      const yKm = rKm * (sinO * cosU + cosO * sinU * cosI);
+      const zKm = rKm * (sinU * sinI);
+
+      const lat = Math.asin(Math.max(-1, Math.min(1, zKm / rKm))) * RAD;
+      const lon = Math.atan2(yKm, xKm) * RAD;
+
+      return { xKm, yKm, zKm, rKm, lat, lon };
+    }
+
+    /**
+     * Evaluates topocentric azimuth, elevation, and terrain/5°-mask clearance
+     * for all relay satellites from a lunar surface location.
+     */
+    function getRelayVisibilityAtSite(obsLat, obsLon, profile, dateObj) {
+      const sinLat = Math.sin(obsLat * DEG);
+      const cosLat = Math.cos(obsLat * DEG);
+      const sinLon = Math.sin(obsLon * DEG);
+      const cosLon = Math.cos(obsLon * DEG);
+
+      const obsX = R_MOON * cosLat * cosLon;
+      const obsY = R_MOON * cosLat * sinLon;
+      const obsZ = R_MOON * sinLat;
+
+      const allSats = [];
+      const visible = [];
+
+      for (const sat of RELAY_SATELLITES) {
+        const pos = propagateRelaySatellite(sat, dateObj);
+        const dx = pos.xKm - obsX;
+        const dy = pos.yKm - obsY;
+        const dz = pos.zKm - obsZ;
+        const rangeKm = Math.hypot(dx, dy, dz);
+
+        const east = -sinLon * dx + cosLon * dy;
+        const north = -sinLat * cosLon * dx - sinLat * sinLon * dy + cosLat * dz;
+        const up = cosLat * cosLon * dx + cosLat * sinLon * dy + sinLat * dz;
+
+        const el = Math.asin(Math.max(-1, Math.min(1, up / rangeKm))) * RAD;
+        const az = norm360(Math.atan2(east, north) * RAD);
+        const terrainEl = horizonAtAz(profile, az);
+        const reqEl = Math.max(terrainEl, RELAY_MIN_EL_DEG);
+        const isVis = el >= reqEl;
+
+        const entry = {
+          id: sat.id,
+          name: sat.name,
+          az,
+          el,
+          rangeKm,
+          lat: pos.lat,
+          lon: pos.lon,
+          rKm: pos.rKm,
+          cssColor: sat.cssColor,
+          colorHex: sat.colorHex,
+          visible: isVis
+        };
+        allSats.push(entry);
+        if (isVis) visible.push(entry);
+      }
+
+      visible.sort((a, b) => b.el - a.el);
+      return { allSats, visible };
+    }
+
+    function getElevationKm(lat, lon) {
+      let z = 0;
+      const features = [
+        { lat: -89.80, lon: 0.00, r: 1.00, depth: -4.2, rim: 1.65 },    // Shackleton Crater
+        { lat: -89.45, lon: -137.31, r: 0.90, depth: 1.85, rim: 0.25 }, // Connecting Ridge
+        { lat: -89.02, lon: 126.27, r: 1.10, depth: 2.10, rim: 0.25 },  // Peak Near Shackleton
+        { lat: -84.95, lon: 31.00, r: 1.80, depth: 5.20, rim: 0.30 },   // Mons Mouton Massif
+        { lat: -85.98, lon: -2.70, r: 1.50, depth: 4.90, rim: 0.30 },   // Malapert Massif
+        { lat: -85.46, lon: 36.36, r: 1.40, depth: 1.45, rim: 0.35 },   // Nobile Rim 1
+        { lat: -87.45, lon: 12.20, r: 1.50, depth: 1.95, rim: 0.30 },   // Haworth Ridge
+        { lat: -84.50, lon: 82.80, r: 1.60, depth: 1.70, rim: 0.30 },   // Amundsen Rim
+        { lat: -88.35, lon: -68.20, r: 1.40, depth: 1.60, rim: 0.30 },  // de Gerlache Rim 2
+        { lat: -88.10, lon: -135.0, r: 2.20, depth: -3.5, rim: 1.40 },   // de Gerlache basin
+        { lat: -87.50, lon: 15.00, r: 2.50, depth: -3.8, rim: 1.35 },   // Haworth basin
+        { lat: -88.00, lon: 45.00, r: 2.40, depth: -3.9, rim: 1.35 },   // Shoemaker basin
+        { lat: -85.20, lon: 165.0, r: 3.20, depth: -3.4, rim: 1.20 },   // Amundsen basin
+        { lat: 0.67, lon: 23.47, r: 8.00, depth: -1.9, rim: 0.20 },     // Mare Tranquillitatis
+        { lat: -53.0, lon: -169.0, r: 25.0, depth: -6.2, rim: 1.50 }    // South Pole-Aitken Basin
+      ];
+
+      for (const f of features) {
+        const dLat = lat - f.lat;
+        const dLon = (((lon - f.lon + 540) % 360) - 180) * Math.max(0.06, Math.cos(lat * DEG));
+        const dist = Math.hypot(dLat, dLon);
+        if (dist < f.r * 1.6) {
+          const u = dist / f.r;
+          if (u < 1) {
+            z += f.depth * (1 - u * u) + f.rim * Math.pow(u, 4);
+          } else {
+            z += f.rim * Math.exp(-Math.pow((u - 1) / 0.32, 2));
+          }
+        }
+      }
+      z += 0.22 * Math.sin(lat * 3.1) * Math.cos(lon * 2.7);
+      return z;
+    }
+
+    function computeHorizonProfile(lat, lon) {
+      const z0 = getElevationKm(lat, lon);
+      const profile = new Float32Array(72);
+      const stepsKm = [1.5, 3, 6, 12, 24, 45, 80];
+
+      for (let i = 0; i < 72; i++) {
+        const az = i * 5 * DEG;
+        let maxEl = -5;
+        for (const d of stepsKm) {
+          const angDist = d / R_MOON;
+          const lat2 =
+            Math.asin(
+              Math.sin(lat * DEG) * Math.cos(angDist) +
+              Math.cos(lat * DEG) * Math.sin(angDist) * Math.cos(az)
+            ) * RAD;
+          const lon2 =
+            lon +
+            Math.atan2(
+              Math.sin(az) * Math.sin(angDist) * Math.cos(lat * DEG),
+              Math.cos(angDist) - Math.sin(lat * DEG) * Math.sin(lat2 * DEG)
+            ) * RAD;
+          const z = getElevationKm(lat2, lon2);
+          const el = (Math.atan2(z - z0, d) - d / (2 * R_MOON)) * RAD;
+          if (el > maxEl) maxEl = el;
+        }
+        profile[i] = maxEl;
+      }
+      return { z0, profile };
+    }
+
+    function getAzEl(obsLat, obsLon, bodyLat, bodyLon) {
+      const phi1 = obsLat * DEG;
+      const phi2 = bodyLat * DEG;
+      const dLon = (bodyLon - obsLon) * DEG;
+      const sinEl = Math.sin(phi1) * Math.sin(phi2) + Math.cos(phi1) * Math.cos(phi2) * Math.cos(dLon);
+      const el = Math.asin(Math.max(-1, Math.min(1, sinEl))) * RAD;
+      const y = Math.sin(dLon) * Math.cos(phi2);
+      const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLon);
+      const az = (Math.atan2(y, x) * RAD + 360) % 360;
+      return { az, el };
+    }
+
+    function horizonAtAz(profile, az) {
+      const idx = (((az % 360) + 360) % 360) / 5;
+      const i0 = Math.floor(idx) % 72;
+      const i1 = (i0 + 1) % 72;
+      const f = idx - Math.floor(idx);
+      return profile[i0] * (1 - f) + profile[i1] * f;
+    }
+
+    // =========================================================================
+    // 3. TIMEFRAME WINDOW SIMULATION & AVERAGES ENGINE (SUN + DTE + RELAYS)
+    // =========================================================================
+    function analyzeTimeframe(lat, lon, startDate, durationDays, steps = 120) {
+      const { z0, profile } = computeHorizonProfile(lat, lon);
+      const startMs = startDate.getTime();
+      const totalHours = durationDays * 24;
+      const dtMs = (durationDays * 86400000) / steps;
+
+      const samples = [];
+      let sunLitCount = 0;
+      let earthLitCount = 0;
+      let relayLitCount = 0;
+      let anyCommsCount = 0;
+      let overlapCount = 0;
+      let sumSunEl = 0;
+      let sumFlux = 0;
+
+      for (let i = 0; i <= steps; i++) {
+        const tMs = startMs + i * dtMs;
+        const dateObj = new Date(tMs);
+        const eph = getEphemeris(dateObj);
+        const sun = getAzEl(lat, lon, eph.sunLat, eph.sunLon);
+        const earth = getAzEl(lat, lon, eph.earthLat, eph.earthLon);
+        const relayInfo = getRelayVisibilityAtSite(lat, lon, profile, dateObj);
+
+        const sunHor = horizonAtAz(profile, sun.az);
+        const earthHor = horizonAtAz(profile, earth.az);
+
+        const sunLit = sun.el > sunHor;
+        const earthLit = earth.el > earthHor;
+        const relayLit = relayInfo.visible.length > 0;
+        const anyComms = earthLit || relayLit;
+
+        const flux = sunLit ? Math.round(300 * Math.max(0.35, Math.cos(Math.max(0, Math.abs(sun.el) - 10) * 0.6 * DEG))) : 0;
+
+        samples.push({
+          tMs,
+          offsetDays: (i / steps) * durationDays,
+          eph,
+          sun,
+          earth,
+          sunHor,
+          earthHor,
+          sunLit,
+          earthLit,
+          relayLit,
+          anyComms,
+          visibleRelays: relayInfo.visible,
+          allRelays: relayInfo.allSats,
+          flux
+        });
+
+        if (i < steps) {
+          if (sunLit) sunLitCount++;
+          if (earthLit) earthLitCount++;
+          if (relayLit) relayLitCount++;
+          if (anyComms) anyCommsCount++;
+          if (sunLit && anyComms) overlapCount++;
+          sumSunEl += sun.el;
+          sumFlux += flux;
+        }
+      }
+
+      const sunPct = (sunLitCount / steps) * 100;
+      const earthPct = (earthLitCount / steps) * 100;
+      const relayPct = (relayLitCount / steps) * 100;
+      const anyCommsPct = (anyCommsCount / steps) * 100;
+      const overlapPct = (overlapCount / steps) * 100;
+
+      const sunHours = (sunPct / 100) * totalHours;
+      const earthHours = (earthPct / 100) * totalHours;
+      const relayHours = (relayPct / 100) * totalHours;
+      const overlapHours = (overlapPct / 100) * totalHours;
+      const avgSunEl = sumSunEl / steps;
+      const avgFlux = Math.round(sumFlux / steps);
+
+      const effectiveCommsPct = Math.max(earthPct, earthPct * 0.65 + relayPct * 0.35);
+      const score = Math.round(sunPct * 0.55 + effectiveCommsPct * 0.45);
+
+      return {
+        z0,
+        profile,
+        samples,
+        steps,
+        durationDays,
+        totalHours,
+        sunPct,
+        earthPct,
+        relayPct,
+        anyCommsPct,
+        overlapPct,
+        sunHours,
+        earthHours,
+        relayHours,
+        overlapHours,
+        avgSunEl,
+        avgFlux,
+        score
+      };
+    }
+
+    function getNextTransitionInCache(cache, currentIdx, key) {
+      const currentState = cache.samples[currentIdx][key];
+      const dtHours = (cache.durationDays * 24) / cache.steps;
+
+      for (let i = currentIdx + 1; i <= cache.steps; i++) {
+        if (cache.samples[i][key] !== currentState) {
+          const hrs = (i - currentIdx) * dtHours;
+          const label =
+            key === "sunLit"
+              ? currentState
+                ? "Sunset"
+                : "Sunrise"
+              : currentState
+                ? "Earthset"
+                : "Earthrise";
+          return hrs >= 24 ? `${label} in ${(hrs / 24).toFixed(1)}d` : `${label} in ${Math.round(hrs)}h`;
+        }
+      }
+      return currentState ? `Clear > ${cache.durationDays.toFixed(0)}d` : `Blocked > ${cache.durationDays.toFixed(0)}d`;
+    }
+
+    // =========================================================================
+    // 4. SOUTH POLE SITE RECOMMENDATIONS ENGINE
+    // =========================================================================
+    function computeSouthPoleRecommendations() {
+      const polarSites = SITES.filter(s => s.pole);
+      const evaluated = polarSites.map(site => {
+        const stats = analyzeTimeframe(site.lat, site.lon, state.startDate, state.durationDays, 72);
+        return { site, stats };
+      });
+
+      evaluated.sort((a, b) => b.stats.score - a.stats.score);
+
+      let bestSunId = evaluated.reduce((best, cur) => (cur.stats.sunPct > best.stats.sunPct ? cur : best), evaluated[0]).site.id;
+      let bestEarthId = evaluated.reduce((best, cur) => (cur.stats.earthPct > best.stats.earthPct ? cur : best), evaluated[0]).site.id;
+
+      return evaluated.map((item, idx) => {
+        let badge = "Balanced Site";
+        let badgeCls = "bg-slate-800 text-slate-300 border-slate-700";
+        if (idx === 0) {
+          badge = "★ Top Overall";
+          badgeCls = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+        } else if (item.site.id === bestSunId) {
+          badge = "☀ Peak Solar";
+          badgeCls = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+        } else if (item.site.id === bestEarthId) {
+          badge = "📡 Best DTE";
+          badgeCls = "bg-sky-500/20 text-sky-300 border-sky-500/40";
+        } else if (item.site.id === "shackleton_floor") {
+          badge = "🧊 Cryo PSR";
+          badgeCls = "bg-indigo-500/20 text-indigo-300 border-indigo-500/40";
+        }
+        return { ...item, badge, badgeCls };
+      });
+    }
+
+    // =========================================================================
+    // 5. 3D EARTH-MOON-SUN ORBITAL ENGINE & TIDAL LOCKING (THREE.JS)
+    // =========================================================================
+    let scene, camera, renderer, controls, sunLight;
+    let earthGroup, earthMesh, earthCloudsMesh;
+    let sunGroup, sunCoreMesh, sunCoronaMesh;
+    let moonSystemGroup, moonMesh, pinGroup;
+    let satOrbitGroup, satMeshMap = {}, satLinkGroup;
+    let moonOrbitLine, earthDteLine;
+    let prevMoonWorldPos = null;
+
+    // Converts selenocentric (lat, lon, r) in MOON_ME frame to local Three.js Vector3
+    // Matches Three.js SphereGeometry UV mapping:
+    //   lat=0, lon=0°   -> (+r, 0, 0) [Prime Meridian / Near Side facing Earth]
+    //   lat=0, lon=+90° -> (0, 0, -r) [East limb]
+    //   lat=0, lon=-90° -> (0, 0, +r) [West limb]
+    //   lat=+90°N       -> (0, +r, 0) [North Pole]
+    //   lat=-90°S       -> (0, -r, 0) [South Pole]
+    function latLonToVec3(lat, lon, radius = 1) {
+      const theta = (90 - lat) * DEG;
+      const phi = (lon + 180) * DEG;
+      return new THREE.Vector3(
+        -radius * Math.sin(theta) * Math.cos(phi),
+        radius * Math.cos(theta),
+        radius * Math.sin(theta) * Math.sin(phi)
+      );
+    }
+
+    function buildOfflineMoonCanvas() {
+      const w = 720;
+      const h = 360;
+      const off = document.createElement("canvas");
+      off.width = w;
+      off.height = h;
+      const ctx = off.getContext("2d");
+      const img = ctx.createImageData(w, h);
+      for (let py = 0; py < h; py++) {
+        const lat = 90 - (py / (h - 1)) * 180;
+        for (let px = 0; px < w; px++) {
+          const lon = -180 + (px / w) * 360;
+          const z = getElevationKm(lat, lon);
+          const shade = Math.max(48, Math.min(215, Math.round(125 + z * 15)));
+          const i = (py * w + px) * 4;
+          img.data[i] = shade;
+          img.data[i + 1] = shade;
+          img.data[i + 2] = Math.min(255, shade + 4);
+          img.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      state.moonImageData = img;
+      return off;
+    }
+
+    /**
+     * Generates a rich procedural Earth texture (oceans, continents, polar ice caps, and cloud wisps)
+     * so Earth renders immediately with zero external dependency failures.
+     */
+    function buildProceduralEarthCanvas() {
+      const w = 720;
+      const h = 360;
+      const off = document.createElement("canvas");
+      off.width = w;
+      off.height = h;
+      const ctx = off.getContext("2d");
+
+      // Deep ocean gradient
+      const oceanGrad = ctx.createLinearGradient(0, 0, 0, h);
+      oceanGrad.addColorStop(0, "#1e3a8a");
+      oceanGrad.addColorStop(0.5, "#0369a1");
+      oceanGrad.addColorStop(1, "#1e3a8a");
+      ctx.fillStyle = oceanGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Stylized continental landmasses (lon -180..180, lat 90..-90)
+      const continents = [
+        // North America
+        { lon: -102, lat: 42, rx: 32, ry: 20, col: "#2e6f40" },
+        { lon: -115, lat: 56, rx: 24, ry: 12, col: "#3b7a57" },
+        { lon: -88, lat: 22, rx: 10, ry: 12, col: "#3f7d3a" },
+        // South America
+        { lon: -58, lat: -15, rx: 16, ry: 26, col: "#2d6a4f" },
+        { lon: -66, lat: -36, rx: 9, ry: 18, col: "#4a7c59" },
+        // Greenland
+        { lon: -42, lat: 72, rx: 14, ry: 8, col: "#e2e8f0" },
+        // Europe
+        { lon: 14, lat: 50, rx: 22, ry: 12, col: "#3a7d44" },
+        { lon: 24, lat: 62, rx: 16, ry: 8, col: "#4a7c59" },
+        // Africa
+        { lon: 20, lat: 8, rx: 22, ry: 24, col: "#6b703c" },
+        { lon: 14, lat: 23, rx: 24, ry: 9, col: "#b59b5c" }, // Sahara
+        { lon: 24, lat: -18, rx: 13, ry: 16, col: "#4f772d" },
+        // Asia
+        { lon: 86, lat: 48, rx: 48, ry: 22, col: "#3a7d44" },
+        { lon: 105, lat: 30, rx: 26, ry: 14, col: "#2d6a4f" },
+        { lon: 78, lat: 20, rx: 10, ry: 11, col: "#4f772d" },
+        { lon: 56, lat: 32, rx: 18, ry: 10, col: "#a68a56" },
+        // Australia
+        { lon: 134, lat: -25, rx: 16, ry: 11, col: "#9c6644" },
+        // Antarctica
+        { lon: 0, lat: -83, rx: 180, ry: 11, col: "#f1f5f9" },
+        // Arctic cap
+        { lon: 0, lat: 85, rx: 180, ry: 7, col: "#f8fafc" }
+      ];
+
+      continents.forEach(c => {
+        const cx = ((c.lon + 180) / 360) * w;
+        const cy = ((90 - c.lat) / 180) * h;
+        const rx = (c.rx / 360) * w;
+        const ry = (c.ry / 180) * h;
+        ctx.fillStyle = c.col;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Subtle atmospheric cloud swirls
+      ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+      for (let i = 0; i < 48; i++) {
+        const cx = ((i * 73) % w);
+        const cy = 24 + ((i * 47) % (h - 48));
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 18 + (i % 24), 3.2, (i % 5) * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      return off;
+    }
+
+    /**
+     * Computes the Moon's 3D geocentric position in Three.js world space
+     * (Y-up ecliptic frame: +X = vernal equinox, -Z = +90° ecliptic lon).
+     */
+    function getMoonGeocentricPos3D(eph) {
+      const r = MOON_ORBIT_SMA_3D * (1 - MOON_ORBIT_ECC * Math.cos(eph.moonMeanAnomaly));
+      const u = eph.moonTrueLon - eph.ascendingNode;
+      const cosO = Math.cos(eph.ascendingNode);
+      const sinO = Math.sin(eph.ascendingNode);
+      const cosU = Math.cos(u);
+      const sinU = Math.sin(u);
+      const cosI = Math.cos(MOON_ORBIT_INC_RAD);
+      const sinI = Math.sin(MOON_ORBIT_INC_RAD);
+
+      const xEcl = r * (cosO * cosU - sinO * sinU * cosI);
+      const yEcl = r * (sinO * cosU + cosO * sinU * cosI);
+      const zEcl = r * (sinU * sinI);
+
+      // Map ecliptic (xEcl, yEcl, zEcl) -> Three.js (X, Y-up, Z)
+      return new THREE.Vector3(xEcl, zEcl, -yEcl);
+    }
+
+    /**
+     * Computes the Sun's 3D geocentric direction unit vector in Three.js world space.
+     */
+    function getSunDir3D(eph) {
+      return new THREE.Vector3(
+        Math.cos(eph.sunEclipticLon),
+        0,
+        -Math.sin(eph.sunEclipticLon)
+      ).normalize();
+    }
+
+    function init3D() {
+      const container = document.getElementById("stage-3d");
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.appendChild(renderer.domElement);
+
+      if (typeof THREE.OrbitControls !== "undefined") {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.minDistance = 1.35;
+        controls.maxDistance = 95.0;
+      } else {
+        let drag = false, lx = 0, ly = 0;
+        let radius = 4.6;
+        let theta = 0.2;
+        let phi = 2.15;
+        controls = {
+          target: new THREE.Vector3(),
+          update: () => {
+            camera.position.set(
+              controls.target.x + radius * Math.sin(phi) * Math.sin(theta),
+              controls.target.y + radius * Math.cos(phi),
+              controls.target.z + radius * Math.sin(phi) * Math.cos(theta)
+            );
+            camera.lookAt(controls.target);
+          }
+        };
+        renderer.domElement.addEventListener("pointerdown", e => { drag = true; lx = e.clientX; ly = e.clientY; });
+        window.addEventListener("pointermove", e => {
+          if (!drag) return;
+          theta -= (e.clientX - lx) * 0.006;
+          phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - (e.clientY - ly) * 0.006));
+          lx = e.clientX; ly = e.clientY;
+        });
+        window.addEventListener("pointerup", () => { drag = false; });
+        renderer.domElement.addEventListener("wheel", e => {
+          e.preventDefault();
+          radius = Math.max(1.35, Math.min(95, radius * (1 + e.deltaY * 0.001)));
+        }, { passive: false });
+      }
+
+      // Starfield background
+      const starGeo = new THREE.BufferGeometry();
+      const starVerts = new Float32Array(2600 * 3);
+      for (let i = 0; i < starVerts.length; i++) {
+        starVerts[i] = (Math.random() - 0.5) * 260;
+      }
+      starGeo.setAttribute("position", new THREE.BufferAttribute(starVerts, 3));
+      scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x94a3b8, size: 0.14 })));
+
+      // =======================================================================
+      // A. CENTRAL EARTH AT GEOCENTRIC ORIGIN (0, 0, 0) WITH 23.44° OBLIQUITY
+      // =======================================================================
+      earthGroup = new THREE.Group();
+      earthGroup.rotation.z = 23.44 * DEG;
+      scene.add(earthGroup);
+
+      const earthCanvas = buildProceduralEarthCanvas();
+      const earthTex = new THREE.CanvasTexture(earthCanvas);
+      const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS_3D, 64, 48);
+      const earthMat = new THREE.MeshStandardMaterial({
+        map: earthTex,
+        roughness: 0.72,
+        metalness: 0.08
+      });
+      earthMesh = new THREE.Mesh(earthGeo, earthMat);
+      earthGroup.add(earthMesh);
+
+      // Subtle Atmospheric Rayleigh Scattering Rim Halo around Earth
+      const atmoGeo = new THREE.SphereGeometry(EARTH_RADIUS_3D * 1.038, 48, 36);
+      const atmoMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.16,
+        side: THREE.BackSide
+      });
+      earthCloudsMesh = new THREE.Mesh(atmoGeo, atmoMat);
+      earthGroup.add(earthCloudsMesh);
+
+      // Attempt to upgrade Earth texture with NASA Blue Marble if CORS/network allows
+      const earthImg = new Image();
+      earthImg.crossOrigin = "anonymous";
+      earthImg.onload = () => {
+        const liveTex = new THREE.Texture(earthImg);
+        liveTex.needsUpdate = true;
+        earthMat.map = liveTex;
+        earthMat.needsUpdate = true;
+      };
+      earthImg.src = "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg";
+
+      // =======================================================================
+      // B. DISTANT GLOWING SUN & DIRECTIONAL SOLAR ILLUMINATION
+      // =======================================================================
+      sunGroup = new THREE.Group();
+      scene.add(sunGroup);
+
+      sunCoreMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(3.4, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xfffbeb })
+      );
+      sunGroup.add(sunCoreMesh);
+
+      sunCoronaMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(5.2, 32, 32),
+        new THREE.MeshBasicMaterial({
+          color: 0xfbbf24,
+          transparent: true,
+          opacity: 0.25
+        })
+      );
+      sunGroup.add(sunCoronaMesh);
+
+      sunLight = new THREE.DirectionalLight(0xffffff, 2.35);
+      scene.add(sunLight);
+      scene.add(new THREE.AmbientLight(0x1e293b, 0.36));
+
+      // =======================================================================
+      // C. MOON ORBITAL TRAJECTORY RING AROUND EARTH
+      // =======================================================================
+      const orbitMat = new THREE.LineBasicMaterial({
+        color: 0x64748b,
+        transparent: true,
+        opacity: 0.38
+      });
+      moonOrbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMat);
+      scene.add(moonOrbitLine);
+
+      // Direct-to-Earth (DTE) Telemetry Line from Inspected Lunar Site to Earth
+      const dteMat = new THREE.LineBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.72
+      });
+      earthDteLine = new THREE.Line(new THREE.BufferGeometry(), dteMat);
+      scene.add(earthDteLine);
+
+      // =======================================================================
+      // D. ORBITING & TIDALLY-LOCKED MOON SYSTEM GROUP (MOON_ME LOCAL FRAME)
+      // =======================================================================
+      moonSystemGroup = new THREE.Group();
+      scene.add(moonSystemGroup);
+
+      const fallbackCanvas = buildOfflineMoonCanvas();
+      const fallbackTex = new THREE.CanvasTexture(fallbackCanvas);
+      const geo = new THREE.SphereGeometry(1, 128, 96);
+      const mat = new THREE.MeshStandardMaterial({
+        map: fallbackTex,
+        bumpMap: fallbackTex,
+        color: 0xd8dee9,
+        roughness: 0.92,
+        metalness: 0.02,
+        bumpScale: 0.018
+      });
+      moonMesh = new THREE.Mesh(geo, mat);
+      moonSystemGroup.add(moonMesh);
+
+      // Load Real NASA SVS LRO/LOLA Moon Map
+      loadRealMoonTexture(mat);
+
+      // Surface Pins Group (inside moonSystemGroup so pins ride with the Moon!)
+      pinGroup = new THREE.Group();
+      moonSystemGroup.add(pinGroup);
+
+      // Relay Satellite Orbits & Spacecraft (inside moonSystemGroup so they orbit the moving Moon!)
+      init3DRelayConstellation();
+
+      // Set Initial Position & Orientation before positioning camera
+      const initEph = getEphemeris(state.startDate);
+      updateEarthMoonSun3D(initEph, state.startDate);
+      prevMoonWorldPos = moonSystemGroup.position.clone();
+
+      // Place initial camera close to the Moon's South Pole looking at moonSystemGroup
+      controls.target.copy(moonSystemGroup.position);
+      camera.position.copy(moonSystemGroup.position).add(new THREE.Vector3(0, -3.3, 3.8));
+      if (controls.update) controls.update();
+
+      // Raycast click anywhere on 3D Moon (converts world hit back into MOON_ME local space!)
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let downPos = { x: 0, y: 0 };
+
+      renderer.domElement.addEventListener("pointerdown", e => {
+        downPos = { x: e.clientX, y: e.clientY };
+      });
+
+      renderer.domElement.addEventListener("pointerup", e => {
+        if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+        pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObject(moonMesh);
+        if (hits.length > 0) {
+          // Convert world-space hit point into moonSystemGroup's local MOON_ME frame
+          const localPt = moonSystemGroup.worldToLocal(hits[0].point.clone()).normalize();
+          const lat = Math.asin(Math.max(-1, Math.min(1, localPt.y))) * RAD;
+          const theta = Math.atan2(localPt.z, -localPt.x) * RAD;
+          let lon = theta - 180;
+          if (lon < -180) lon += 360;
+          if (lon > 180) lon -= 360;
+          selectCoordinates(lat, lon, `Custom (${lat.toFixed(2)}°, ${lon.toFixed(2)}°)`);
+        }
+      });
+
+      window.addEventListener("resize", onResize);
+    }
+
+    /**
+     * Updates the 3D positions & orientations of Earth, Sun, and the tidally-locked Moon
+     * (including optical libration in longitude ±7.6° and latitude ±6.68°) for a given epoch.
+     * Uses an exact orthonormal basis transformation M_world * M_local^T so that:
+     *   1. The sub-Earth point (eph.earthLat, eph.earthLon) in MOON_ME points dead-center at Earth.
+     *   2. The 3D Sun direction matches (eph.sunLat, eph.sunLon) in MOON_ME identically.
+     */
+    function updateEarthMoonSun3D(eph, dateObj) {
+      if (!moonSystemGroup || !earthMesh || !sunGroup || !sunLight) return;
+
+      // 1. Position Moon along its 5.145° inclined elliptical orbit around Earth at (0,0,0)
+      const moonPos = getMoonGeocentricPos3D(eph);
+      moonSystemGroup.position.copy(moonPos);
+
+      // Keep Camera Target locked to Moon when in 'Moon' focus mode so the Moon stays centered
+      if (state.cameraFocus === "moon" && controls && prevMoonWorldPos) {
+        const delta = moonPos.clone().sub(prevMoonWorldPos);
+        camera.position.add(delta);
+        controls.target.copy(moonPos);
+      }
+      prevMoonWorldPos = moonPos.clone();
+
+      // 2. Exact Tidal Locking + Optical Libration Quaternion (M_world * M_local^T):
+      // Unit vector from Moon center to Earth center in world space
+      const e1World = moonPos.clone().negate().normalize();
+
+      // Lunar spin north pole in world space (tilted 1.54° from ecliptic +Y normal, precessing with ascending node)
+      const nodeLon = eph.ascendingNode + Math.PI;
+      const lunarNorthWorld = new THREE.Vector3(
+        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.sin(nodeLon),
+        Math.cos(MOON_AXIAL_OBLIQUITY_RAD),
+        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.cos(nodeLon)
+      ).normalize();
+
+      // Orthonormal world basis [e1World, e2World, e3World]
+      const e3World = new THREE.Vector3().crossVectors(e1World, lunarNorthWorld).normalize();
+      const e2World = new THREE.Vector3().crossVectors(e3World, e1World).normalize();
+      const mWorld = new THREE.Matrix4().makeBasis(e1World, e2World, e3World);
+
+      // Corresponding orthonormal local MOON_ME basis [e1Local, e2Local, e3Local]
+      // In Three.js SphereGeometry, lat=0°, lon=0° (prime meridian) is (+1, 0, 0)
+      const e1Local = latLonToVec3(eph.earthLat, eph.earthLon, 1).normalize();
+      const northLocal = new THREE.Vector3(0, 1, 0);
+      const e3Local = new THREE.Vector3().crossVectors(e1Local, northLocal).normalize();
+      const e2Local = new THREE.Vector3().crossVectors(e3Local, e1Local).normalize();
+      const mLocal = new THREE.Matrix4().makeBasis(e1Local, e2Local, e3Local);
+
+      // R = M_world * M_local^T maps e1Local -> e1World (points 0° prime meridian directly at Earth!)
+      const mLocalTranspose = mLocal.clone().transpose();
+      const rotMatrix = new THREE.Matrix4().multiplyMatrices(mWorld, mLocalTranspose);
+      moonSystemGroup.quaternion.setFromRotationMatrix(rotMatrix);
+      moonSystemGroup.updateMatrixWorld(true);
+
+      // 3. Transform local sub-solar vector (eph.sunLat, eph.sunLon) into world space
+      // Ensures 100% agreement between 3D sunlit terminator, lunar phase, and telemetry calculations
+      const sunLocalDir = latLonToVec3(eph.sunLat, eph.sunLon, 1).normalize();
+      const sunFromMoonWorld = sunLocalDir.clone().applyQuaternion(moonSystemGroup.quaternion).normalize();
+      const sunWorldPos = moonPos.clone().addScaledVector(sunFromMoonWorld, SUN_DISTANCE_3D);
+
+      sunGroup.position.copy(sunWorldPos);
+      sunLight.position.copy(sunWorldPos);
+
+      // 4. Rotate Earth around its polar axis according to UTC time of day + seasonal solar longitude
+      const sunEclipticAngle = Math.atan2(-sunFromMoonWorld.z, sunFromMoonWorld.x);
+      const utcHours =
+        dateObj.getUTCHours() +
+        dateObj.getUTCMinutes() / 60 +
+        dateObj.getUTCSeconds() / 3600;
+      earthMesh.rotation.y = sunEclipticAngle + (utcHours / 24) * Math.PI * 2 + Math.PI;
+
+      // 5. Update Moon's 27.3-day orbital trajectory ring around Earth for current nodal plane
+      if (moonOrbitLine) {
+        const pts = [];
+        for (let s = 0; s <= 96; s++) {
+          const nu = (s / 96) * Math.PI * 2;
+          const r = MOON_ORBIT_SMA_3D * (1 - MOON_ORBIT_ECC * Math.cos(nu));
+          const u = nu + (eph.moonTrueLon - eph.moonMeanAnomaly) - eph.ascendingNode;
+          const cosO = Math.cos(eph.ascendingNode);
+          const sinO = Math.sin(eph.ascendingNode);
+          const cosU = Math.cos(u);
+          const sinU = Math.sin(u);
+          const cosI = Math.cos(MOON_ORBIT_INC_RAD);
+          const sinI = Math.sin(MOON_ORBIT_INC_RAD);
+          const xEcl = r * (cosO * cosU - sinO * sinU * cosI);
+          const yEcl = r * (sinO * cosU + cosO * sinU * cosI);
+          const zEcl = r * (sinU * sinI);
+          pts.push(new THREE.Vector3(xEcl, zEcl, -yEcl));
+        }
+        moonOrbitLine.geometry.dispose();
+        moonOrbitLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+      }
+    }
+
+    function init3DRelayConstellation() {
+      satOrbitGroup = new THREE.Group();
+      moonSystemGroup.add(satOrbitGroup);
+
+      satLinkGroup = new THREE.Group();
+      moonSystemGroup.add(satLinkGroup);
+
+      const refEpoch = new Date("2026-11-14T12:00:00Z");
+
+      RELAY_SATELLITES.forEach(sat => {
+        const orbitPts = [];
+        const steps = 96;
+        for (let s = 0; s <= steps; s++) {
+          const t = new Date(refEpoch.getTime() + (s / steps) * sat.periodHours * 3600000);
+          const pos = propagateRelaySatellite(sat, t);
+          const visualR = 1.0 + ((pos.rKm / R_MOON) - 1.0) * 0.42;
+          orbitPts.push(latLonToVec3(pos.lat, pos.lon, visualR));
+        }
+        const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPts);
+        const orbitMat = new THREE.LineBasicMaterial({
+          color: sat.colorHex,
+          transparent: true,
+          opacity: 0.34
+        });
+        satOrbitGroup.add(new THREE.Line(orbitGeo, orbitMat));
+
+        const satObj = new THREE.Group();
+        const bus = new THREE.Mesh(
+          new THREE.BoxGeometry(0.055, 0.055, 0.055),
+          new THREE.MeshBasicMaterial({ color: sat.colorHex })
+        );
+        const wings = new THREE.Mesh(
+          new THREE.BoxGeometry(0.20, 0.01, 0.042),
+          new THREE.MeshBasicMaterial({ color: 0xe2e8f0 })
+        );
+        satObj.add(bus);
+        satObj.add(wings);
+        moonSystemGroup.add(satObj);
+        satMeshMap[sat.id] = satObj;
+      });
+    }
+
+    function update3DRelaysAndLinks(sample) {
+      if (!satMeshMap || !satLinkGroup || !moonSystemGroup) return;
+
+      // Update spacecraft positions in MOON_ME local space inside moonSystemGroup
+      (sample.allRelays || []).forEach(rel => {
+        const mesh = satMeshMap[rel.id];
+        if (!mesh) return;
+        const visualR = 1.0 + ((rel.rKm / R_MOON) - 1.0) * 0.42;
+        const localPos = latLonToVec3(rel.lat, rel.lon, visualR);
+        mesh.position.copy(localPos);
+        mesh.lookAt(moonSystemGroup.position);
+        mesh.visible = state.showRelayOrbits;
+      });
+
+      // Rebuild active communication beams from inspected site to overhead relay satellites
+      while (satLinkGroup.children.length) {
+        satLinkGroup.remove(satLinkGroup.children[0]);
+      }
+
+      const siteLocalOrigin = latLonToVec3(state.lat, state.lon, 1.015);
+
+      if (state.showRelayOrbits) {
+        (sample.visibleRelays || []).forEach(rel => {
+          const mesh = satMeshMap[rel.id];
+          if (!mesh) return;
+          const beamGeo = new THREE.BufferGeometry().setFromPoints([siteLocalOrigin, mesh.position.clone()]);
+          const beamMat = new THREE.LineBasicMaterial({
+            color: 0xc084fc,
+            transparent: true,
+            opacity: 0.92
+          });
+          satLinkGroup.add(new THREE.Line(beamGeo, beamMat));
+        });
+      }
+
+      // Update Direct-to-Earth (DTE) line-of-sight beam in world space
+      if (earthDteLine) {
+        earthDteLine.visible = state.showDteBeam && sample.earthLit;
+        if (earthDteLine.visible) {
+          moonSystemGroup.updateMatrixWorld(true);
+          const siteWorldPos = siteLocalOrigin.clone().applyMatrix4(moonSystemGroup.matrixWorld);
+          const earthSurfacePos = siteWorldPos.clone().normalize().multiplyScalar(EARTH_RADIUS_3D);
+          earthDteLine.geometry.dispose();
+          earthDteLine.geometry = new THREE.BufferGeometry().setFromPoints([siteWorldPos, earthSurfacePos]);
+        }
+      }
+    }
+
+    function toggleSatelliteOrbits() {
+      state.showRelayOrbits = !state.showRelayOrbits;
+      document.getElementById("orbits-btn-label").textContent = state.showRelayOrbits ? "Relay Sats: ON" : "Relay Sats: OFF";
+      if (satOrbitGroup) satOrbitGroup.visible = state.showRelayOrbits;
+      const cur = getCurrentSample();
+      if (cur) update3DRelaysAndLinks(cur.sample);
+      render2D();
+    }
+
+    function toggleDteBeam() {
+      state.showDteBeam = !state.showDteBeam;
+      document.getElementById("dte-beam-label").textContent = state.showDteBeam ? "Earth Link: ON" : "Earth Link: OFF";
+      const cur = getCurrentSample();
+      if (cur) update3DRelaysAndLinks(cur.sample);
+    }
+
+    function setCameraFocus(mode) {
+      state.cameraFocus = mode;
+      const moonBtn = document.getElementById("focus-moon-btn");
+      const sysBtn = document.getElementById("focus-system-btn");
+      const mobBtn = document.getElementById("mobile-focus-btn");
+
+      if (mode === "moon") {
+        moonBtn.className = "px-2 py-0.5 rounded-full font-semibold bg-sky-500 text-slate-950 transition";
+        sysBtn.className = "px-2 py-0.5 rounded-full font-medium text-slate-300 hover:text-white transition";
+        if (mobBtn) mobBtn.textContent = "Moon Cam";
+        if (moonSystemGroup && controls) {
+          controls.target.copy(moonSystemGroup.position);
+          camera.position.copy(moonSystemGroup.position).add(new THREE.Vector3(0, -3.3, 3.8));
+          if (controls.update) controls.update();
+        }
+      } else {
+        sysBtn.className = "px-2 py-0.5 rounded-full font-semibold bg-sky-500 text-slate-950 transition";
+        moonBtn.className = "px-2 py-0.5 rounded-full font-medium text-slate-300 hover:text-white transition";
+        if (mobBtn) mobBtn.textContent = "System Cam";
+        if (controls) {
+          controls.target.set(0, 0, 0);
+          camera.position.set(0, 18.0, 32.0);
+          if (controls.update) controls.update();
+        }
+      }
+    }
+
+    function toggleCameraFocus() {
+      setCameraFocus(state.cameraFocus === "moon" ? "system" : "moon");
+    }
+
+    function loadRealMoonTexture(mat) {
+      const urls = [
+        "https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_2k.jpg",
+        "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/moon_1024.jpg"
+      ];
+      let idx = 0;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const tex = new THREE.Texture(img);
+        tex.needsUpdate = true;
+        mat.map = tex;
+        mat.bumpMap = tex;
+        mat.needsUpdate = true;
+        state.moonImg = img;
+
+        const off = document.createElement("canvas");
+        off.width = 720;
+        off.height = 360;
+        const octx = off.getContext("2d");
+        octx.drawImage(img, 0, 0, 720, 360);
+        state.moonImageData = octx.getImageData(0, 0, 720, 360);
+        document.getElementById("tex-badge").textContent = "NASA LRO";
+        render2D();
+      };
+      img.onerror = () => {
+        idx++;
+        if (idx < urls.length) {
+          img.src = urls[idx];
+        } else {
+          const badge = document.getElementById("tex-badge");
+          badge.textContent = "Offline Relief";
+          badge.className = "px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30";
+        }
+      };
+      img.src = urls[0];
+    }
+
+    function rebuild3DPins() {
+      if (!pinGroup) return;
+      while (pinGroup.children.length) pinGroup.remove(pinGroup.children[0]);
+
+      // 1. Subtle curated site dots
+      for (const s of SITES) {
+        const pos = latLonToVec3(s.lat, s.lon, 1.005);
+        const dot = new THREE.Mesh(
+          new THREE.SphereGeometry(0.011, 10, 10),
+          new THREE.MeshBasicMaterial({ color: 0x64748b })
+        );
+        dot.position.copy(pos);
+        pinGroup.add(dot);
+      }
+
+      // 2. Pinned Comparison Points (A = Amber, B = Sky Blue, C = Emerald)
+      state.pinnedPoints.forEach((pin, idx) => {
+        const colorHex = PIN_COLORS[idx] ? PIN_COLORS[idx].threeHex : 0x38bdf8;
+        const pos = latLonToVec3(pin.lat, pin.lon, 1.012);
+        const sphere = new THREE.Mesh(
+          new THREE.SphereGeometry(0.021, 14, 14),
+          new THREE.MeshBasicMaterial({ color: colorHex })
+        );
+        sphere.position.copy(pos);
+        pinGroup.add(sphere);
+      });
+
+      // 3. Active Selected Cursor Beacon (White core)
+      const activePos = latLonToVec3(state.lat, state.lon, 1.015);
+      const activeCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.024, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      );
+      activeCore.position.copy(activePos);
+      pinGroup.add(activeCore);
+    }
+
+    // =========================================================================
+    // 6. 2D MAPS: SOUTH POLE STEREOGRAPHIC & GLOBAL EQUIRECTANGULAR
+    // =========================================================================
+    const canvas2D = document.getElementById("stage-2d");
+    const ctx2D = canvas2D.getContext("2d");
+
+    function sampleNASAAlbedo(lat, lon) {
+      if (!state.moonImageData) {
+        const z = getElevationKm(lat, lon);
+        return Math.max(45, Math.min(210, 125 + z * 14));
+      }
+      const w = state.moonImageData.width;
+      const h = state.moonImageData.height;
+      const u = ((((lon + 180) % 360) + 360) % 360) / 360;
+      const v = (90 - lat) / 180;
+      const px = Math.min(w - 1, Math.max(0, Math.floor(u * w)));
+      const py = Math.min(h - 1, Math.max(0, Math.floor(v * h)));
+      return state.moonImageData.data[(py * w + px) * 4];
+    }
+
+    function getCurrentSample() {
+      const cache = state.activeWindowCache;
+      if (!cache) return null;
+      const idx = Math.min(cache.steps, Math.max(0, Math.round(state.scrubFrac * cache.steps)));
+      return { sample: cache.samples[idx], idx };
+    }
+
+    function render2D() {
+      if (state.view === "globe") return;
+      const cur = getCurrentSample();
+      if (!cur) return;
+      const sample = cur.sample;
+      const eph = sample.eph;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      canvas2D.width = W * dpr;
+      canvas2D.height = H * dpr;
+      ctx2D.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx2D.fillStyle = "#050811";
+      ctx2D.fillRect(0, 0, W, H);
+
+      if (state.view === "pole") {
+        const cx = W / 2;
+        const cy = H / 2 + 12;
+        const R = Math.min(W, H) * 0.39;
+        const maxColat = 25; // -65°S to -90°S
+
+        const size = Math.max(20, Math.ceil(R * 2));
+        const img = ctx2D.createImageData(size, size);
+        for (let py = 0; py < size; py++) {
+          for (let px = 0; px < size; px++) {
+            const dx = px - R;
+            const dy = py - R;
+            const r = Math.hypot(dx, dy);
+            if (r > R) continue;
+            const colat = (r / R) * maxColat;
+            const lat = -90 + colat;
+            const lon = Math.atan2(dx, -dy) * RAD;
+            const albedo = sampleNASAAlbedo(lat, lon);
+            const sunEl = getAzEl(lat, lon, eph.sunLat, eph.sunLon).el;
+            const shade = sunEl > 0 ? Math.min(1.25, 0.35 + Math.sin(sunEl * DEG) * 3.5) : 0.16;
+            const v = Math.min(255, Math.floor(albedo * shade));
+            const i = (py * size + px) * 4;
+            img.data[i] = v;
+            img.data[i + 1] = v;
+            img.data[i + 2] = Math.min(255, v + 8);
+            img.data[i + 3] = 255;
+          }
+        }
+        ctx2D.putImageData(img, cx - R, cy - R);
+
+        // Latitude rings (-85°, -80°, -75°, -70°, -65°)
+        ctx2D.strokeStyle = "rgba(148,163,184,0.24)";
+        ctx2D.lineWidth = 1;
+        ctx2D.font = "10px monospace";
+        ctx2D.fillStyle = "rgba(148,163,184,0.75)";
+        for (const latRing of [-85, -80, -75, -70, -65]) {
+          const rr = ((latRing + 90) / maxColat) * R;
+          ctx2D.beginPath();
+          ctx2D.arc(cx, cy, rr, 0, Math.PI * 2);
+          ctx2D.stroke();
+          ctx2D.fillText(`${Math.abs(latRing)}°S`, cx + 4, cy - rr + 11);
+        }
+
+        // Direct-to-Earth visibility boundary line (Earth El = 0°)
+        ctx2D.strokeStyle = "rgba(56, 189, 248, 0.85)";
+        ctx2D.lineWidth = 1.6;
+        ctx2D.setLineDash([5, 4]);
+        ctx2D.beginPath();
+        let started = false;
+        for (let a = 0; a <= 360; a += 2) {
+          const lon = a - 180;
+          const tanLat = -Math.cos((lon - eph.earthLon) * DEG) / Math.tan((eph.earthLat || 1e-4) * DEG);
+          let latZero = Math.atan(tanLat) * RAD;
+          if (latZero > 0) latZero -= 180;
+          const colat = latZero + 90;
+          if (colat >= 0 && colat <= maxColat) {
+            const rr = (colat / maxColat) * R;
+            const x = cx + rr * Math.sin(lon * DEG);
+            const y = cy - rr * Math.cos(lon * DEG);
+            if (!started) {
+              ctx2D.moveTo(x, y);
+              started = true;
+            } else {
+              ctx2D.lineTo(x, y);
+            }
+          }
+        }
+        ctx2D.stroke();
+        ctx2D.setLineDash([]);
+
+        ctx2D.fillStyle = "#38bdf8";
+        ctx2D.font = "600 11px monospace";
+        ctx2D.textAlign = "center";
+        ctx2D.fillText("0° Prime Meridian (Toward Earth)", cx, cy - R - 10);
+        ctx2D.textAlign = "left";
+
+        const polarXY = (lat, lon) => {
+          const rr = ((lat + 90) / maxColat) * R;
+          return { x: cx + rr * Math.sin(lon * DEG), y: cy - rr * Math.cos(lon * DEG) };
+        };
+
+        const plotPolar = (lat, lon, color, radius, tag) => {
+          if (lat < -90 || lat > -65) return;
+          const { x, y } = polarXY(lat, lon);
+          ctx2D.fillStyle = color;
+          ctx2D.beginPath();
+          ctx2D.arc(x, y, radius, 0, Math.PI * 2);
+          ctx2D.fill();
+          if (tag) {
+            ctx2D.fillStyle = "#f8fafc";
+            ctx2D.font = "bold 10px monospace";
+            ctx2D.fillText(tag, x + 7, y + 3);
+          }
+        };
+
+        SITES.forEach(s => plotPolar(s.lat, s.lon, "rgba(148,163,184,0.75)", 3, null));
+        state.pinnedPoints.forEach((p, idx) => {
+          const c = PIN_COLORS[idx];
+          plotPolar(p.lat, p.lon, c.hex, 5.5, `Pin ${c.key}`);
+        });
+        plotPolar(state.lat, state.lon, "#ffffff", 6.5, null);
+
+        if (state.showRelayOrbits && sample.allRelays) {
+          const cursorPos = state.lat <= -65 ? polarXY(state.lat, state.lon) : null;
+          sample.allRelays.forEach(rel => {
+            if (rel.lat > -65) return;
+            const satPos = polarXY(rel.lat, rel.lon);
+            if (rel.visible && cursorPos) {
+              ctx2D.strokeStyle = "rgba(192, 132, 252, 0.78)";
+              ctx2D.lineWidth = 1.5;
+              ctx2D.setLineDash([4, 3]);
+              ctx2D.beginPath();
+              ctx2D.moveTo(cursorPos.x, cursorPos.y);
+              ctx2D.lineTo(satPos.x, satPos.y);
+              ctx2D.stroke();
+              ctx2D.setLineDash([]);
+            }
+            ctx2D.fillStyle = rel.visible ? "#c084fc" : "rgba(167, 139, 250, 0.45)";
+            ctx2D.beginPath();
+            ctx2D.arc(satPos.x, satPos.y, 4.5, 0, Math.PI * 2);
+            ctx2D.fill();
+            ctx2D.fillStyle = "#e9d5ff";
+            ctx2D.font = "10px monospace";
+            ctx2D.fillText(`🛰 ${rel.id}`, satPos.x + 6, satPos.y + 3);
+          });
+        }
+      } else {
+        // 2D Global Equirectangular Projection
+        const mapW = Math.min(W * 0.68, (H - 120) * 2);
+        const mapH = mapW / 2;
+        const x0 = (W - mapW) / 2;
+        const y0 = (H - mapH) / 2 + 16;
+
+        if (state.moonImg) {
+          ctx2D.drawImage(state.moonImg, x0, y0, mapW, mapH);
+        } else {
+          ctx2D.fillStyle = "#1e293b";
+          ctx2D.fillRect(x0, y0, mapW, mapH);
+        }
+
+        // Day/Night terminator overlay
+        ctx2D.fillStyle = "rgba(2, 6, 23, 0.60)";
+        for (let gx = 0; gx < 180; gx++) {
+          for (let gy = 0; gy < 90; gy++) {
+            const lon = -180 + (gx + 0.5) * 2;
+            const lat = 90 - (gy + 0.5) * 2;
+            if (getAzEl(lat, lon, eph.sunLat, eph.sunLon).el <= 0) {
+              ctx2D.fillRect(
+                x0 + (gx / 180) * mapW,
+                y0 + (gy / 90) * mapH,
+                mapW / 180 + 0.6,
+                mapH / 90 + 0.6
+              );
+            }
+          }
+        }
+
+        // Near-side Direct-to-Earth zone outline
+        ctx2D.strokeStyle = "rgba(56, 189, 248, 0.75)";
+        ctx2D.setLineDash([5, 4]);
+        ctx2D.strokeRect(x0 + mapW * 0.25, y0, mapW * 0.5, mapH);
+        ctx2D.setLineDash([]);
+
+        const globalXY = (lat, lon) => ({
+          x: x0 + ((lon + 180) / 360) * mapW,
+          y: y0 + ((90 - lat) / 180) * mapH
+        });
+
+        const plotGlobal = (lat, lon, color, r, tag) => {
+          const { x, y } = globalXY(lat, lon);
+          ctx2D.fillStyle = color;
+          ctx2D.beginPath();
+          ctx2D.arc(x, y, r, 0, Math.PI * 2);
+          ctx2D.fill();
+          if (tag) {
+            ctx2D.fillStyle = "#f8fafc";
+            ctx2D.font = "bold 10px monospace";
+            ctx2D.fillText(tag, x + 7, y + 3);
+          }
+        };
+
+        SITES.forEach(s => plotGlobal(s.lat, s.lon, "rgba(148,163,184,0.8)", 3, null));
+        state.pinnedPoints.forEach((p, idx) => {
+          const c = PIN_COLORS[idx];
+          plotGlobal(p.lat, p.lon, c.hex, 5.5, `Pin ${c.key}`);
+        });
+        plotGlobal(state.lat, state.lon, "#ffffff", 6.5, null);
+
+        if (state.showRelayOrbits && sample.allRelays) {
+          const cursorPos = globalXY(state.lat, state.lon);
+          sample.allRelays.forEach(rel => {
+            const satPos = globalXY(rel.lat, rel.lon);
+            if (rel.visible) {
+              ctx2D.strokeStyle = "rgba(192, 132, 252, 0.78)";
+              ctx2D.lineWidth = 1.5;
+              ctx2D.setLineDash([4, 3]);
+              ctx2D.beginPath();
+              ctx2D.moveTo(cursorPos.x, cursorPos.y);
+              ctx2D.lineTo(satPos.x, satPos.y);
+              ctx2D.stroke();
+              ctx2D.setLineDash([]);
+            }
+            ctx2D.fillStyle = rel.visible ? "#c084fc" : "rgba(167, 139, 250, 0.5)";
+            ctx2D.beginPath();
+            ctx2D.arc(satPos.x, satPos.y, 4.5, 0, Math.PI * 2);
+            ctx2D.fill();
+            ctx2D.fillStyle = "#e9d5ff";
+            ctx2D.font = "10px monospace";
+            ctx2D.fillText(`🛰 ${rel.id}`, satPos.x + 6, satPos.y + 3);
+          });
+        }
+      }
+    }
+
+    canvas2D.addEventListener("click", e => {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      if (state.view === "pole") {
+        const cx = W / 2;
+        const cy = H / 2 + 12;
+        const R = Math.min(W, H) * 0.39;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const r = Math.hypot(dx, dy);
+        if (r <= R) {
+          const lat = -90 + (r / R) * 25;
+          const lon = Math.atan2(dx, -dy) * RAD;
+          selectCoordinates(lat, lon, `Polar Point (${lat.toFixed(2)}°, ${lon.toFixed(2)}°)`);
+        }
+      } else if (state.view === "global") {
+        const mapW = Math.min(W * 0.68, (H - 120) * 2);
+        const mapH = mapW / 2;
+        const x0 = (W - mapW) / 2;
+        const y0 = (H - mapH) / 2 + 16;
+        if (e.clientX >= x0 && e.clientX <= x0 + mapW && e.clientY >= y0 && e.clientY <= y0 + mapH) {
+          const lon = ((e.clientX - x0) / mapW) * 360 - 180;
+          const lat = 90 - ((e.clientY - y0) / mapH) * 180;
+          selectCoordinates(lat, lon, `Global Point (${lat.toFixed(2)}°, ${lon.toFixed(2)}°)`);
+        }
+      }
+    });
+
+    // =========================================================================
+    // 7. UI RENDERING: RECOMMENDATIONS, COMPARISON CARDS, CHARTS & TELEMETRY
+    // =========================================================================
+    function renderRecommendationsList() {
+      const container = document.getElementById("recommend-list");
+      const recs = computeSouthPoleRecommendations();
+      container.innerHTML = recs
+        .map(({ site, stats, badge, badgeCls }) => {
+          const isSelected = Math.abs(state.lat - site.lat) < 0.05 && Math.abs(state.lon - site.lon) < 0.05;
+          const isPinned = state.pinnedPoints.some(
+            p => Math.abs(p.lat - site.lat) < 0.05 && Math.abs(p.lon - site.lon) < 0.05
+          );
+          return `
+          <div onclick="selectCoordinates(${site.lat}, ${site.lon}, '${site.name.replace(/'/g, "\\'")}')"
+            class="p-2 rounded-xl border transition cursor-pointer ${
+              isSelected
+                ? "bg-sky-500/18 border-sky-400/55"
+                : "bg-slate-900/75 hover:bg-slate-800/80 border-slate-800"
+            }">
+            <div class="flex items-center justify-between gap-1.5">
+              <span class="font-semibold text-slate-100 truncate">${site.name}</span>
+              <span class="text-[9px] mono px-1.5 py-0.5 rounded border shrink-0 ${badgeCls}">${badge}</span>
+            </div>
+            <div class="flex items-center justify-between mt-1.5 text-[10px] mono">
+              <div class="flex items-center gap-2">
+                <span class="text-amber-300">☀ ${Math.round(stats.sunPct)}%</span>
+                <span class="text-sky-300">● ${Math.round(stats.earthPct)}%</span>
+                <span class="text-violet-300">🛰 ${Math.round(stats.relayPct)}%</span>
+              </div>
+              <button type="button"
+                onclick="event.stopPropagation(); pinLocation(${site.lat}, ${site.lon}, '${site.name.replace(/'/g, "\\'")}')"
+                class="px-1.5 py-0.5 rounded ${
+                  isPinned
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    : "bg-slate-800 hover:bg-sky-500/25 text-slate-300 hover:text-sky-200 border border-slate-700"
+                } transition">
+                ${isPinned ? "Pinned" : "+ Pin"}
+              </button>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+    }
+
+    function renderAllSitesList() {
+      const list = document.getElementById("site-list");
+      list.innerHTML = "";
+      for (const s of SITES) {
+        const active = Math.abs(state.lat - s.lat) < 0.05 && Math.abs(state.lon - s.lon) < 0.05;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `text-left px-2.5 py-1.5 rounded-lg transition flex items-center justify-between ${
+          active
+            ? "bg-sky-500/20 border border-sky-400/50 text-white"
+            : "hover:bg-slate-800/80 text-slate-300 border border-transparent"
+        }`;
+        btn.innerHTML = `<span class="truncate font-medium">${s.name}</span><span class="text-[10px] text-slate-400 ml-1 shrink-0">${s.tag}</span>`;
+        btn.onclick = () => selectCoordinates(s.lat, s.lon, s.name);
+        list.appendChild(btn);
+      }
+    }
+
+    function renderComparisonCards() {
+      const container = document.getElementById("compare-cards");
+      document.getElementById("compare-tab-btn").textContent = `Compare (${state.pinnedPoints.length})`;
+
+      if (state.pinnedPoints.length === 0) {
+        container.innerHTML = `<div class="text-slate-400 text-center py-4">No pinned locations yet. Click + Pin to compare sites.</div>`;
+        return;
+      }
+
+      const cur = getCurrentSample();
+      const simDate = cur ? new Date(cur.sample.tMs) : state.startDate;
+      const ephNow = getEphemeris(simDate);
+
+      container.innerHTML = state.pinnedPoints
+        .map((pin, idx) => {
+          const badge = PIN_COLORS[idx] || PIN_COLORS[0];
+          const stats = analyzeTimeframe(pin.lat, pin.lon, state.startDate, state.durationDays, 72);
+          const sunNow = getAzEl(pin.lat, pin.lon, ephNow.sunLat, ephNow.sunLon);
+          const earthNow = getAzEl(pin.lat, pin.lon, ephNow.earthLat, ephNow.earthLon);
+          const sunLitNow = sunNow.el > horizonAtAz(stats.profile, sunNow.az);
+          const earthLitNow = earthNow.el > horizonAtAz(stats.profile, earthNow.az);
+          const relaysNow = getRelayVisibilityAtSite(pin.lat, pin.lon, stats.profile, simDate).visible;
+
+          return `
+          <div onclick="selectCoordinates(${pin.lat}, ${pin.lon}, '${pin.name.replace(/'/g, "\\'")}')"
+            class="p-2.5 rounded-xl bg-slate-900/85 hover:bg-slate-800/85 border border-slate-800 space-y-2 cursor-pointer transition">
+            <div class="flex items-center justify-between gap-1.5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="px-1.5 py-0.5 rounded text-[10px] mono font-bold ${badge.badgeCls}">PIN ${badge.key}</span>
+                <span class="font-semibold text-slate-100 truncate">${pin.name}</span>
+              </div>
+              <button type="button" onclick="event.stopPropagation(); removePin(${idx})" title="Remove Pin"
+                class="text-slate-400 hover:text-rose-400 px-1 text-xs">✕</button>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] mono text-slate-400">
+              <span>${pin.lat.toFixed(2)}°, ${pin.lon.toFixed(2)}°E</span>
+              <span>
+                <span class="${sunLitNow ? "text-amber-300" : "text-slate-500"}">${sunLitNow ? "☀ Lit" : "◐ Shadow"}</span> ·
+                <span class="${earthLitNow ? "text-sky-300" : "text-rose-400"}">${earthLitNow ? "● DTE" : "✕ DTE"}</span> ·
+                <span class="${relaysNow.length > 0 ? "text-violet-300" : "text-slate-500"}">🛰 ${relaysNow.length}</span>
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1 text-center mono text-[10px] pt-1 border-t border-slate-800/80">
+              <div class="bg-slate-950/70 rounded p-1">
+                <div class="text-[9px] text-slate-400">Avg Sun</div>
+                <div class="font-bold text-amber-300">${Math.round(stats.sunPct)}%</div>
+              </div>
+              <div class="bg-slate-950/70 rounded p-1">
+                <div class="text-[9px] text-slate-400">Direct DTE</div>
+                <div class="font-bold text-sky-300">${Math.round(stats.earthPct)}%</div>
+              </div>
+              <div class="bg-slate-950/70 rounded p-1">
+                <div class="text-[9px] text-slate-400">Relay Sat</div>
+                <div class="font-bold text-violet-300">${Math.round(stats.relayPct)}%</div>
+              </div>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+    }
+
+    function drawWindowTimelineStrip() {
+      const canvas = document.getElementById("window-strip-canvas");
+      const cache = state.activeWindowCache;
+      if (!canvas || !cache) return;
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const n = cache.steps;
+      const segW = W / n;
+      const trackH = H / 3;
+
+      for (let i = 0; i < n; i++) {
+        const s = cache.samples[i];
+        ctx.fillStyle = s.sunLit ? "#f59e0b" : "#1e293b";
+        ctx.fillRect(i * segW, 0, Math.ceil(segW), trackH - 0.5);
+
+        ctx.fillStyle = s.earthLit ? "#38bdf8" : "#3f1d2e";
+        ctx.fillRect(i * segW, trackH + 0.25, Math.ceil(segW), trackH - 0.5);
+
+        ctx.fillStyle = s.relayLit ? "#a78bfa" : "#1e1b4b";
+        ctx.fillRect(i * segW, trackH * 2 + 0.5, Math.ceil(segW), trackH - 0.5);
+      }
+
+      const px = state.scrubFrac * W;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(Math.max(0, Math.min(W - 2, px - 1)), 0, 2, H);
+    }
+
+    function drawHorizonPlot(profile, sun, earth, visibleRelays) {
+      const c = document.getElementById("horizon-canvas");
+      const ctx = c.getContext("2d");
+      const W = c.width;
+      const H = c.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const elToY = el => H * 0.72 - (el / 65) * (H * 0.65);
+
+      ctx.strokeStyle = "rgba(148,163,184,0.28)";
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(0, elToY(0));
+      ctx.lineTo(W, elToY(0));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "rgba(71, 85, 105, 0.55)";
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let i = 0; i <= 72; i++) {
+        const x = (i / 72) * W;
+        const y = elToY(profile[i % 72]);
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      const drawBody = (az, el, color, r = 4.2) => {
+        const x = (az / 360) * W;
+        const y = Math.max(6, Math.min(H - 6, elToY(el)));
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#050811";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      };
+
+      (visibleRelays || []).forEach(rel => drawBody(rel.az, rel.el, "#c084fc", 3.5));
+      drawBody(sun.az, sun.el, "#fbbf24", 4.5);
+      drawBody(earth.az, earth.el, "#38bdf8", 4.5);
+    }
+
+    // =========================================================================
+    // 8. MASTER UPDATE PIPELINE (TIMEFRAME REBUILD VS SCRUB / PLAY TICK)
+    // =========================================================================
+    function rebuildActiveWindow() {
+      state.activeWindowCache = analyzeTimeframe(state.lat, state.lon, state.startDate, state.durationDays, 120);
+      const cache = state.activeWindowCache;
+
+      document.getElementById("avg-score-badge").textContent = `Score ${cache.score}/100`;
+      document.getElementById("stat-sun-avg").textContent = `${cache.sunPct.toFixed(1)}% (${Math.round(cache.sunHours)}h)`;
+      document.getElementById("stat-earth-avg").textContent = `${cache.earthPct.toFixed(1)}% (${Math.round(cache.earthHours)}h)`;
+      document.getElementById("stat-relay-avg").textContent = `${cache.relayPct.toFixed(1)}% (${Math.round(cache.relayHours)}h)`;
+      document.getElementById("stat-overlap-avg").textContent = `${cache.overlapPct.toFixed(1)}% (${Math.round(cache.overlapHours)}h)`;
+
+      renderRecommendationsList();
+      renderAllSitesList();
+      rebuild3DPins();
+      updateInstantaneousTelemetry();
+    }
+
+    function updateInstantaneousTelemetry() {
+      const cur = getCurrentSample();
+      if (!cur) return;
+      const { sample, idx } = cur;
+      const cache = state.activeWindowCache;
+      const simDate = new Date(sample.tMs);
+
+      // 1. Update 3D Earth, Sun, Moon Orbital Position, Tidal Locking & Relay Links
+      updateEarthMoonSun3D(sample.eph, simDate);
+      update3DRelaysAndLinks(sample);
+
+      // Update Lunar Phase Pill in Bottom Bar
+      const phasePill = document.getElementById("lunar-phase-pill");
+      if (phasePill) {
+        const illumPct = Math.round(((1 - Math.cos(sample.eph.phaseAngle)) / 2) * 100);
+        phasePill.textContent = `${getLunarPhaseName(sample.eph.phaseFrac)} (${illumPct}%)`;
+      }
+
+      // 2. Header & Coordinates
+      document.getElementById("site-title").textContent = state.name;
+      const ns = state.lat >= 0 ? `${state.lat.toFixed(2)}° N` : `${Math.abs(state.lat).toFixed(2)}° S`;
+      const ew = state.lon >= 0 ? `${state.lon.toFixed(2)}° E` : `${Math.abs(state.lon).toFixed(2)}° W`;
+      document.getElementById("site-subtitle").textContent = `${ns}, ${ew} · Elev ${cache.z0 >= 0 ? "+" : ""}${cache.z0.toFixed(1)} km`;
+
+      // 3. Live Sun Card
+      const sunCard = document.getElementById("sun-card");
+      const sunStatus = document.getElementById("sun-status");
+      sunStatus.textContent = sample.sunLit ? "ILLUMINATED" : "IN SHADOW";
+      sunStatus.className = `font-bold text-sm mt-0.5 ${sample.sunLit ? "text-amber-300" : "text-slate-400"}`;
+      sunCard.className = sample.sunLit
+        ? "rounded-xl p-2 border border-amber-400/30 bg-amber-500/10 transition-colors"
+        : "rounded-xl p-2 border border-slate-700/70 bg-slate-900/60 transition-colors";
+      document.getElementById("sun-flux-live").textContent = `${sample.flux} W/m²`;
+      document.getElementById("sun-detail").textContent = `El ${sample.sun.el >= 0 ? "+" : ""}${sample.sun.el.toFixed(1)}° (Rim ${sample.sunHor.toFixed(1)}°)`;
+      document.getElementById("sun-next").textContent = getNextTransitionInCache(cache, idx, "sunLit");
+
+      // 4. Live Earth DTE Card
+      const earthCard = document.getElementById("earth-card");
+      const earthStatus = document.getElementById("earth-status");
+      earthStatus.textContent = sample.earthLit ? "LINE OF SIGHT" : "BLOCKED";
+      earthStatus.className = `font-bold text-sm mt-0.5 ${sample.earthLit ? "text-sky-300" : "text-rose-400"}`;
+      earthCard.className = sample.earthLit
+        ? "rounded-xl p-2 border border-sky-400/30 bg-sky-500/10 transition-colors"
+        : "rounded-xl p-2 border border-rose-500/30 bg-rose-500/10 transition-colors";
+      document.getElementById("earth-lib-live").textContent = `Lib ${sample.eph.earthLat >= 0 ? "+" : ""}${sample.eph.earthLat.toFixed(1)}°`;
+      document.getElementById("earth-detail").textContent = `El ${sample.earth.el >= 0 ? "+" : ""}${sample.earth.el.toFixed(1)}° (Rim ${sample.earthHor.toFixed(1)}°)`;
+      document.getElementById("earth-next").textContent = getNextTransitionInCache(cache, idx, "earthLit");
+
+      // 5. Live Relay Satellite Constellation Card
+      const visRelays = sample.visibleRelays || [];
+      const relayCard = document.getElementById("relay-card");
+      document.getElementById("relay-count-live").textContent = `${visRelays.length}/4 Overhead`;
+      if (visRelays.length > 0) {
+        relayCard.className = "rounded-xl p-2 border border-violet-400/35 bg-violet-500/10 transition-colors";
+        document.getElementById("relay-status").textContent = visRelays
+          .map(r => `${r.id} (+${r.el.toFixed(0)}°)`)
+          .join(" · ");
+      } else {
+        relayCard.className = "rounded-xl p-2 border border-slate-700/70 bg-slate-900/60 transition-colors";
+        document.getElementById("relay-status").textContent = "No Relay Above 5.0° Mask";
+      }
+      const linkMode =
+        sample.earthLit && visRelays.length > 0
+          ? "DTE + Relay Redundant"
+          : sample.earthLit
+            ? "Direct-to-Earth Only"
+            : visRelays.length > 0
+              ? "Relay Satellite Bridge"
+              : "Comms Blackout";
+      document.getElementById("relay-detail").textContent = `Mask ≥5.0° El · Mode: ${linkMode}`;
+
+      // 6. Simulated Timestamp Readout
+      const iso = simDate.toISOString();
+      document.getElementById("sim-utc-readout").textContent = `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
+      document.getElementById("sim-offset-readout").textContent = `+${sample.offsetDays.toFixed(1)}d / ${state.durationDays.toFixed(0)}d`;
+
+      drawWindowTimelineStrip();
+      drawHorizonPlot(cache.profile, sample.sun, sample.earth, visRelays);
+      renderComparisonCards();
+      render2D();
+    }
+
+    // =========================================================================
+    // 9. INTERACTION HANDLERS (COORDS, PINNING, PLAYBACK, TABS)
+    // =========================================================================
+    function selectCoordinates(lat, lon, customName) {
+      state.lat = Math.max(-90, Math.min(90, lat));
+      state.lon = ((lon + 540) % 360) - 180;
+      state.name = customName || `Custom (${state.lat.toFixed(2)}°, ${state.lon.toFixed(2)}°)`;
+      document.getElementById("lat-input").value = state.lat.toFixed(2);
+      document.getElementById("lon-input").value = state.lon.toFixed(2);
+      rebuildActiveWindow();
+    }
+
+    function pinLocation(lat, lon, name) {
+      const existsIdx = state.pinnedPoints.findIndex(
+        p => Math.abs(p.lat - lat) < 0.05 && Math.abs(p.lon - lon) < 0.05
+      );
+      if (existsIdx >= 0) {
+        showToast(`${name} is already pinned (Pin ${PIN_COLORS[existsIdx].key})`);
+        setLeftTab("compare");
+        return;
+      }
+      if (state.pinnedPoints.length >= 3) {
+        state.pinnedPoints.shift();
+      }
+      state.pinnedPoints.push({ name, lat, lon });
+      const pinKey = PIN_COLORS[state.pinnedPoints.length - 1].key;
+      showToast(`Pinned ${name} as Pin ${pinKey}`);
+      rebuild3DPins();
+      renderRecommendationsList();
+      renderComparisonCards();
+      render2D();
+    }
+
+    function pinCurrentLocation() {
+      pinLocation(state.lat, state.lon, state.name);
+    }
+
+    function removePin(idx) {
+      state.pinnedPoints.splice(idx, 1);
+      rebuild3DPins();
+      renderRecommendationsList();
+      renderComparisonCards();
+      render2D();
+    }
+
+    function stepStartDate(days) {
+      state.startDate = new Date(state.startDate.getTime() + days * 86400000);
+      document.getElementById("date-input").value = state.startDate.toISOString().slice(0, 10);
+      rebuildActiveWindow();
+    }
+
+    function togglePlay() {
+      state.isPlaying = !state.isPlaying;
+      const btn = document.getElementById("play-btn");
+      const icon = document.getElementById("play-icon");
+      const label = document.getElementById("play-label");
+      if (state.isPlaying) {
+        icon.textContent = "❚❚";
+        label.textContent = "Pause";
+        btn.className = "px-2.5 py-1 rounded-full font-semibold bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center gap-1 transition";
+      } else {
+        icon.textContent = "▶";
+        label.textContent = "Play";
+        btn.className = "px-2.5 py-1 rounded-full font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1 transition";
+      }
+    }
+
+    function cyclePlaySpeed() {
+      state.playSpeed = state.playSpeed === 1 ? 3 : 1;
+      document.getElementById("speed-btn").textContent = `${state.playSpeed}x`;
+    }
+
+    function setLeftTab(tabKey) {
+      state.leftTab = tabKey;
+      document.querySelectorAll(".left-tab").forEach(btn => {
+        const active = btn.dataset.tab === tabKey;
+        btn.className = active
+          ? "left-tab py-1.5 px-1 rounded-lg font-semibold bg-sky-500 text-slate-950 transition"
+          : "left-tab py-1.5 px-1 rounded-lg font-medium text-slate-300 hover:text-white transition";
+      });
+      document.getElementById("tab-recommend").classList.toggle("hidden", tabKey !== "recommend");
+      document.getElementById("tab-recommend").classList.toggle("flex", tabKey === "recommend");
+      document.getElementById("tab-sites").classList.toggle("hidden", tabKey !== "sites");
+      document.getElementById("tab-sites").classList.toggle("flex", tabKey === "sites");
+      document.getElementById("tab-compare").classList.toggle("hidden", tabKey !== "compare");
+      document.getElementById("tab-compare").classList.toggle("flex", tabKey === "compare");
+    }
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toast-msg").textContent = msg;
+      toast.classList.remove("opacity-0", "translate-y-2");
+      toast.classList.add("opacity-100", "translate-y-0");
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "translate-y-2");
+      }, 2400);
+    }
+
+    function onResize() {
+      if (camera && renderer) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      render2D();
+    }
+
+    function animationLoop(now) {
+      requestAnimationFrame(animationLoop);
+      const dtSec = Math.min(0.1, (now - state.lastFrameMs) / 1000);
+      state.lastFrameMs = now;
+
+      if (state.isPlaying) {
+        const rate = (1 / 14) * state.playSpeed;
+        state.scrubFrac = (state.scrubFrac + dtSec * rate) % 1.0;
+        document.getElementById("time-scrubber").value = state.scrubFrac.toFixed(4);
+        updateInstantaneousTelemetry();
+      }
+
+      if (state.view === "globe" && renderer) {
+        if (controls) controls.update();
+        renderer.render(scene, camera);
+      }
+    }
+
+    // =========================================================================
+    // 10. INITIALIZATION (SAFE FOR BOTH STANDARD & BLOB PREVIEW FRAMES)
+    // =========================================================================
+    let isInitialized = false;
+
+    function initApp() {
+      if (isInitialized) return;
+      isInitialized = true;
+
+      try {
+        // View Mode Switcher
+        document.querySelectorAll(".view-btn").forEach(btn => {
+          btn.onclick = () => {
+            state.view = btn.dataset.view;
+            document.querySelectorAll(".view-btn").forEach(b => {
+              b.className =
+                b.dataset.view === state.view
+                  ? "view-btn px-2.5 py-1 rounded-full font-medium transition bg-sky-500 text-slate-950"
+                  : "view-btn px-2.5 py-1 rounded-full font-medium transition text-slate-300 hover:text-white";
+            });
+            document.getElementById("stage-3d").classList.toggle("hidden", state.view !== "globe");
+            canvas2D.classList.toggle("hidden", state.view === "globe");
+            render2D();
+          };
+        });
+
+        // Left Panel Tabs
+        document.querySelectorAll(".left-tab").forEach(btn => {
+          btn.onclick = () => setLeftTab(btn.dataset.tab);
+        });
+
+        // Timeframe Duration Buttons (7d, 14d, 29.5d)
+        document.querySelectorAll(".dur-btn").forEach(btn => {
+          btn.onclick = () => {
+            state.durationDays = parseFloat(btn.dataset.dur) || 14;
+            document.querySelectorAll(".dur-btn").forEach(b => {
+              b.className =
+                b === btn
+                  ? "dur-btn px-1.5 py-0.5 rounded bg-sky-500 text-slate-950 font-semibold"
+                  : "dur-btn px-1.5 py-0.5 rounded text-slate-400 hover:text-white";
+            });
+            rebuildActiveWindow();
+          };
+        });
+
+        // Date Input & Scrubber Slider
+        const dateInput = document.getElementById("date-input");
+        dateInput.value = state.startDate.toISOString().slice(0, 10);
+        dateInput.onchange = e => {
+          if (e.target.value) {
+            state.startDate = new Date(`${e.target.value}T12:00:00Z`);
+            rebuildActiveWindow();
+          }
+        };
+
+        document.getElementById("time-scrubber").addEventListener("input", e => {
+          state.scrubFrac = parseFloat(e.target.value) || 0;
+          updateInstantaneousTelemetry();
+        });
+
+        // Custom Coordinate Inputs
+        document.getElementById("lat-input").value = state.lat.toFixed(2);
+        document.getElementById("lon-input").value = state.lon.toFixed(2);
+        document.getElementById("lat-input").onchange = e =>
+          selectCoordinates(parseFloat(e.target.value) || 0, state.lon);
+        document.getElementById("lon-input").onchange = e =>
+          selectCoordinates(state.lat, parseFloat(e.target.value) || 0);
+
+        // Help Modal
+        const helpModal = document.getElementById("help-modal");
+        document.getElementById("help-btn").onclick = () => {
+          helpModal.classList.remove("hidden");
+          helpModal.classList.add("flex");
+        };
+        document.getElementById("close-help").onclick = () => {
+          helpModal.classList.add("hidden");
+          helpModal.classList.remove("flex");
+        };
+        helpModal.onclick = e => {
+          if (e.target === helpModal) {
+            helpModal.classList.add("hidden");
+            helpModal.classList.remove("flex");
+          }
+        };
+
+        // Mobile Drawer Toggles
+        let leftVisible = window.innerWidth >= 768;
+        let rightVisible = window.innerWidth >= 768;
+        if (!leftVisible) document.getElementById("left-panel").style.transform = "translateX(-115%)";
+        if (!rightVisible) document.getElementById("right-panel").style.transform = "translateX(115%)";
+
+        document.getElementById("toggle-left-btn").onclick = () => {
+          leftVisible = !leftVisible;
+          document.getElementById("left-panel").style.transform = leftVisible ? "translateX(0)" : "translateX(-115%)";
+        };
+        document.getElementById("toggle-right-btn").onclick = () => {
+          rightVisible = !rightVisible;
+          document.getElementById("right-panel").style.transform = rightVisible ? "translateX(0)" : "translateX(115%)";
+        };
+
+        // Initialize 3D Stage & Run First Evaluation
+        init3D();
+        rebuildActiveWindow();
+
+        state.lastFrameMs = performance.now();
+        requestAnimationFrame(animationLoop);
+      } catch (err) {
+        console.error("LUNA-VIEW Initialization Error:", err);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
