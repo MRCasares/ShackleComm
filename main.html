@@ -205,12 +205,12 @@
 
     <!-- Animated Day-by-Day Playback Button & Speed -->
     <div class="flex items-center gap-1 pl-2 border-l border-slate-700/70 shrink-0">
-      <button id="play-btn" type="button" onclick="togglePlay()" title="Animate day-by-day across selected timeframe"
+      <button id="play-btn" type="button" onclick="togglePlay()" title="Continuous playback (1x = 1 simulated hour per real second)"
         class="px-2.5 py-1 rounded-full font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center gap-1 transition">
         <span id="play-icon">▶</span>
         <span id="play-label">Play</span>
       </button>
-      <button id="speed-btn" type="button" onclick="cyclePlaySpeed()" title="Playback Speed"
+      <button id="speed-btn" type="button" onclick="cyclePlaySpeed()" title="Playback speed: 0.25x / 0.5x / 1x / 2x / 4x"
         class="px-1.5 py-1 rounded-lg bg-slate-800/85 hover:bg-slate-700 text-slate-300 mono text-[10px] transition">
         1x
       </button>
@@ -257,7 +257,7 @@
       <div class="flex items-center justify-between text-[10px] text-slate-400">
         <span>Top South Pole sites for active window</span>
         <span id="tex-badge" class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-          NASA LRO
+          Synthetic terrain
         </span>
       </div>
       <div id="recommend-list" class="flex flex-col gap-1.5"></div>
@@ -319,12 +319,12 @@
       </button>
     </div>
 
-    <!-- Instantaneous Sunlight & Direct-to-Earth Status Cards -->
+    <!-- Instantaneous sunlight and end-to-end Earth connectivity -->
     <div class="grid grid-cols-2 gap-2">
       <div id="sun-card" class="rounded-xl p-2 border border-amber-400/30 bg-amber-500/10 transition-colors">
         <div class="flex items-center justify-between">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Sunlight</span>
-          <span id="sun-flux-live" class="text-[10px] mono text-amber-300 font-semibold">296 W/m²</span>
+          <span id="sun-flux-live" class="text-[10px] mono text-amber-300 font-semibold">0 W/m²</span>
         </div>
         <div id="sun-status" class="font-bold text-sm text-amber-300 mt-0.5">ILLUMINATED</div>
         <div id="sun-detail" class="text-[10px] text-slate-300 mono mt-0.5">El +1.4° (Rim -0.4°)</div>
@@ -333,10 +333,10 @@
 
       <div id="earth-card" class="rounded-xl p-2 border border-sky-400/30 bg-sky-500/10 transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase tracking-wider text-slate-400">DSN Earth link</span>
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">Earth connection</span>
           <span id="earth-lib-live" class="text-[10px] mono text-sky-300">Lib +4.2°</span>
         </div>
-        <div id="earth-status" class="font-bold text-sm text-sky-300 mt-0.5">LINE OF SIGHT</div>
+        <div id="earth-status" class="font-bold text-sm text-sky-300 mt-0.5">CHECKING LINK</div>
         <div id="earth-detail" class="text-[10px] text-slate-300 mono mt-0.5">El +4.8° (Rim +0.2°)</div>
         <div id="earth-next" class="text-[10px] text-sky-200/80 mono mt-1 pt-1 border-t border-sky-500/20">Clear &gt; 14d</div>
         <div id="dsn-station-list" class="space-y-1 mt-1.5 pt-1.5 border-t border-sky-500/20" aria-label="DSN station visibility"></div>
@@ -353,7 +353,7 @@
         LCRNS-1 (+64.2°) · Pathfinder (+41.8°)
       </div>
       <div id="relay-detail" class="text-[10px] text-slate-300 mono mt-0.5">
-        Mask ≥5.0° El · Active Comms: DTE + Relay
+        Mask ≥5.0° · Relay needs DSN downlink
       </div>
     </div>
 
@@ -373,16 +373,16 @@
         <span id="sim-offset-readout" class="text-sky-300">+0.0d / 14.0d</span>
       </div>
 
-      <!-- Triple Sunlight + Earth DTE + Relay Sat Availability Strip -->
+      <!-- Sunlight, end-to-end Earth connectivity, and relay coverage -->
       <div class="space-y-1 pt-0.5">
         <canvas id="window-strip-canvas" width="260" height="24" class="w-full h-[24px] rounded border border-slate-800"></canvas>
-        <input id="time-scrubber" type="range" min="0" max="1" step="0.002" value="0" aria-label="Scrub through timeframe" class="w-full" />
+        <input id="time-scrubber" type="range" min="0" max="1" step="0.000001" value="0" aria-label="Scrub through timeframe" class="w-full" />
       </div>
 
       <div class="flex justify-between text-[9px] text-slate-400">
         <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-amber-400 inline-block rounded-xs"></span>Sun Lit</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-sky-400 inline-block rounded-xs"></span>DSN ≥1 link</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-violet-400 inline-block rounded-xs"></span>Relay Sat</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-sky-400 inline-block rounded-xs"></span>Earth connected</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-violet-400 inline-block rounded-xs"></span>Relay → DSN</span>
       </div>
     </div>
 
@@ -401,11 +401,11 @@
           <div id="stat-sun-avg" class="mono font-bold text-amber-300 mt-0.5">85.0% (286h)</div>
         </div>
         <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
-          <div class="text-[9px] text-slate-400">DSN Ground Link</div>
-          <div id="stat-earth-avg" class="mono font-bold text-sky-300 mt-0.5">96.4% (324h)</div>
+          <div class="text-[9px] text-slate-400">Earth Connection</div>
+          <div id="stat-earth-avg" class="mono font-bold text-sky-300 mt-0.5">—</div>
         </div>
         <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
-          <div class="text-[9px] text-slate-400">Relay Sat Coverage</div>
+          <div class="text-[9px] text-slate-400">Relay Coverage</div>
           <div id="stat-relay-avg" class="mono font-bold text-violet-300 mt-0.5">98.5% (331h)</div>
         </div>
         <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
@@ -462,13 +462,13 @@
           </h4>
           <p class="text-slate-300 mt-1">
             • <strong>Surface Imagery &amp; Sites:</strong> NASA SVS LRO/LOLA <span class="mono text-slate-100">lroc_color_2k.jpg</span> and IAU <span class="mono text-slate-100">MOON_ME</span> coordinates for NASA Artemis III candidate sites, LOLA South Pole catalogs, and Apollo/CLPS/Chandrayaan/Chang’e missions.<br/>
-            • <strong>Airless Line-of-Sight:</strong> With zero atmosphere, visibility requires solar, Earth, or satellite elevation to exceed the 72-sector (<span class="mono">5°</span>) terrain horizon angle <span class="mono">H(Az)</span> accounting for lunar curvature (<span class="mono">R = 1737.4 km</span>).
+            • <strong>Airless Line-of-Sight:</strong> Visibility uses a 72-sector (<span class="mono">5°</span>) approximate terrain horizon based on synthetic topography. It is NOT a loaded NASA LOLA elevation grid. Solar irradiance is computed for a horizontal surface as 1361 × max(0, sin(solar elevation)) W/m² when the Sun clears the horizon; tilted sun-tracking arrays receive a different flux.
           </p>
         </div>
 
         <div>
           <h4 class="font-semibold text-sky-300 uppercase tracking-wider text-[11px]">3. Three DSN Ground Station Links</h4>
-          <p class="text-slate-300 mt-1">The Madrid (Spain), Goldstone (USA), and Canberra (Australia) complexes are Earth-fixed at their geographic coordinates, rotating only with Earth. Each direct line terminates at its station rather than at Earth's center. The lunar relay orbital planes remain fixed in a Moon-centered inertial frame instead of rotating with the tidally locked lunar surface. The complexes are checked independently. A direct link exists only when Earth clears the selected lunar location's modeled terrain horizon <strong>and</strong> the Moon is above that DSN station's geometric horizon at the simulated UTC time. Link beams and connection statistics use this same rule. Ground-station availability, actual antenna pointing, weather, terrain at the station, radio link budget, and mission scheduling are not modeled. Lunar positions use a low-precision analytical ephemeris.</p>
+          <p class="text-slate-300 mt-1">The Madrid (Spain), Goldstone (USA), and Canberra (Australia) complexes are Earth-fixed at their geographic coordinates, rotating only with Earth. Each direct line terminates at its station rather than at Earth's center. The lunar relay orbital planes remain fixed in a Moon-centered inertial frame instead of rotating with the tidally locked lunar surface. Each orbiting relay also checks an independent satellite-to-station straight line against Earth and Moon occultation; a lunar-base-to-relay hop counts as an Earth connection only if it has at least one such downlink. The main Earth Connection status combines direct base-to-DSN and base-to-relay-to-DSN paths; DTE refers only to the former. The complexes are checked independently. A direct link exists only when Earth clears the selected lunar location's modeled terrain horizon <strong>and</strong> the Moon is above that DSN station's geometric horizon at the simulated UTC time. Link beams and connection statistics use this same rule. Ground-station availability, actual antenna pointing, weather, terrain at the station, radio link budget, and mission scheduling are not modeled. Lunar positions use a low-precision analytical ephemeris.</p>
         </div>
         <div>
           <h4 class="font-semibold text-violet-300 uppercase tracking-wider text-[11px]">
@@ -584,6 +584,9 @@
       { id: "goldstone", name: "Goldstone", country: "USA", lat: 35.28139, lon: -116.77889, color: "#fbbf24", threeColor: 0xfbbf24 },
       { id: "canberra", name: "Canberra", country: "Australia", lat: -35.40167, lon: 148.98222, color: "#34d399", threeColor: 0x34d399 }
     ];
+    const EARTH_RADIUS_KM = 6371.0;
+    const MEAN_EARTH_MOON_KM = 384400;
+    const SOLAR_IRRADIANCE_WM2 = 1361; // Mean irradiance normal to solar rays at 1 AU.
     const DSN_MIN_ELEVATION_DEG = 0; // Geometric, ideal horizon; not actual antenna scheduling.
 
     const RELAY_MIN_EL_DEG = 5.0; // NASA LCRNS Service Volume II elevation mask
@@ -618,10 +621,11 @@
       durationDays: 14,           // 7 | 14 | 29.530589
       scrubFrac: 0,               // 0..1 across durationDays
       isPlaying: false,
-      playSpeed: 1,               // 1x or 3x
+      playSpeed: 1,               // 1x = 1 simulated hour per real second
       showRelayOrbits: true,
       showDteBeam: true,
       lastFrameMs: performance.now(),
+      lastTelemetryMs: 0,
       moonImageData: null,
       moonImg: null,
       activeWindowCache: null,
@@ -713,6 +717,62 @@
                  visible: earthAboveLunarHorizon && elevationDeg > DSN_MIN_ELEVATION_DEG };
       });
       return { stations, visible: stations.filter(station => station.visible), geo };
+    }
+
+    // Pure geometric LOS in PHYSICAL kilometres. Rendering deliberately exaggerates
+    // lunar satellite altitudes, so visual scene coordinates must never gate links.
+    function segmentClearsSphere(a, b, center, radiusKm) {
+      const delta = b.clone().sub(a);
+      const t = Math.max(0, Math.min(1, center.clone().sub(a).dot(delta) / delta.lengthSq()));
+      return a.clone().addScaledVector(delta, t).distanceTo(center) > radiusKm + 0.01;
+    }
+
+    function getRelayDsnLinks(relayInfo, dateObj, eph) {
+      const moonVisual = getMoonGeocentricPos3D(eph);
+      const moonCenter = moonVisual.clone().multiplyScalar(MEAN_EARTH_MOON_KM / MOON_ORBIT_SMA_3D);
+      const earthCenter = new THREE.Vector3(0, 0, 0);
+      const earthOrientation = earthFixedToWorldQuaternion(getEarthDsnGeometry(dateObj), moonVisual);
+      const links = [];
+      for (const sat of relayInfo.allSats) {
+        const satWorld = moonCenter.clone().add(inertialSatelliteVector({
+          xKm: sat.inertialXKm, yKm: sat.inertialYKm, zKm: sat.inertialZKm
+        }));
+        sat.dsnLinks = [];
+        for (const station of DSN_STATIONS) {
+          const ground = latLonToVec3(station.lat, station.lon, EARTH_RADIUS_KM)
+            .applyQuaternion(earthOrientation);
+          const groundEl = Math.asin(Math.max(-1, Math.min(1,
+            satWorld.clone().sub(ground).normalize().dot(ground.clone().normalize())))) * RAD;
+          // The path STARTS on Earth's surface. A generic sphere-clearance test
+          // incorrectly rejects that endpoint (distance == Earth radius) even
+          // when the ray points outward, resulting in 0/4 linked satellites.
+          // Positive topocentric elevation is precisely the unobstructed
+          // Earth-horizon condition for a spherical Earth: the entire segment
+          // from the ground antenna toward the spacecraft stays outside Earth.
+          const earthClear = groundEl > DSN_MIN_ELEVATION_DEG;
+          const moonClear = segmentClearsSphere(ground, satWorld, moonCenter, R_MOON);
+          if (earthClear && moonClear) {
+            const link = { stationId: station.id, stationName: station.name,
+              stationColor: station.color, elevationDeg: groundEl,
+              rangeKm: ground.distanceTo(satWorld), satelliteId: sat.id };
+            sat.dsnLinks.push(link);
+            links.push(link);
+          }
+        }
+        sat.earthConnected = sat.dsnLinks.length > 0;
+        sat.relayConnected = sat.visible && sat.earthConnected;
+      }
+      const reachable = relayInfo.visible.filter(s => s.earthConnected);
+      return { links, reachable };
+    }
+
+    // Irradiance on a LOCAL HORIZONTAL SURFACE (not a sun-pointing panel).
+    // An airless Moon has no diffuse atmospheric light: negative/occluded Sun = 0.
+    // Actual shadow maps require a measured digital elevation model (LOLA/SLDEM).
+    function getHorizontalSolarFlux(sunElevationDeg, sunVisible) {
+      return sunVisible
+        ? Math.round(SOLAR_IRRADIANCE_WM2 * Math.max(0, Math.sin(sunElevationDeg * DEG)))
+        : 0;
     }
 
     function getLunarPhaseName(phaseFrac) {
@@ -948,10 +1008,11 @@
         const lunarEarthClear = earth.el > earthHor;
         const dsn = getDsnVisibility(lunarEarthClear, dateObj);
         const earthLit = dsn.visible.length > 0;
-        const relayLit = relayInfo.visible.length > 0;
+        const satDsn = getRelayDsnLinks(relayInfo, dateObj, eph);
+        const relayLit = satDsn.reachable.length > 0;
         const anyComms = earthLit || relayLit;
 
-        const flux = sunLit ? Math.round(300 * Math.max(0.35, Math.cos(Math.max(0, Math.abs(sun.el) - 10) * 0.6 * DEG))) : 0;
+        const flux = getHorizontalSolarFlux(sun.el, sunLit);
 
         samples.push({
           tMs,
@@ -968,6 +1029,8 @@
           relayLit,
           anyComms,
           visibleRelays: relayInfo.visible,
+          linkedRelays: satDsn.reachable,
+          satDsnLinks: satDsn.links,
           allRelays: relayInfo.allSats,
           flux
         });
@@ -996,7 +1059,7 @@
       const avgSunEl = sumSunEl / steps;
       const avgFlux = Math.round(sumFlux / steps);
 
-      const effectiveCommsPct = Math.max(earthPct, earthPct * 0.65 + relayPct * 0.35);
+      const effectiveCommsPct = anyCommsPct;
       const score = Math.round(sunPct * 0.55 + effectiveCommsPct * 0.45);
 
       return {
@@ -1034,8 +1097,8 @@
                 ? "Sunset"
                 : "Sunrise"
               : currentState
-                ? "Earthset"
-                : "Earthrise";
+                ? "Link loss"
+                : "Link restored";
           return hrs >= 24 ? `${label} in ${(hrs / 24).toFixed(1)}d` : `${label} in ${Math.round(hrs)}h`;
         }
       }
@@ -1055,7 +1118,7 @@
       evaluated.sort((a, b) => b.stats.score - a.stats.score);
 
       let bestSunId = evaluated.reduce((best, cur) => (cur.stats.sunPct > best.stats.sunPct ? cur : best), evaluated[0]).site.id;
-      let bestEarthId = evaluated.reduce((best, cur) => (cur.stats.earthPct > best.stats.earthPct ? cur : best), evaluated[0]).site.id;
+      let bestEarthId = evaluated.reduce((best, cur) => (cur.stats.anyCommsPct > best.stats.anyCommsPct ? cur : best), evaluated[0]).site.id;
 
       return evaluated.map((item, idx) => {
         let badge = "Balanced Site";
@@ -1067,7 +1130,7 @@
           badge = "☀ Peak Solar";
           badgeCls = "bg-amber-500/20 text-amber-300 border-amber-500/40";
         } else if (item.site.id === bestEarthId) {
-          badge = "📡 Best DTE";
+          badge = "📡 Best Comms";
           badgeCls = "bg-sky-500/20 text-sky-300 border-sky-500/40";
         } else if (item.site.id === "shackleton_floor") {
           badge = "🧊 Cryo PSR";
@@ -1559,7 +1622,9 @@
       earthMesh.updateMatrixWorld(true);
 
       // 5. Update Moon's 27.3-day orbital trajectory ring around Earth for current nodal plane
-      if (moonOrbitLine) {
+      if (moonOrbitLine && (!moonOrbitLine.userData.lastOrbitEpoch ||
+          Math.abs(dateObj.getTime() - moonOrbitLine.userData.lastOrbitEpoch) >= 1800000)) {
+        moonOrbitLine.userData.lastOrbitEpoch = dateObj.getTime();
         const pts = [];
         for (let s = 0; s <= 96; s++) {
           const nu = (s / 96) * Math.PI * 2;
@@ -1623,6 +1688,23 @@
       });
     }
 
+    // Modify existing GPU line buffers; allocating geometries every frame causes stutter.
+    function setBeamEndpoints(line, start, end) {
+      const positions = line.geometry.getAttribute("position");
+      if (!positions || positions.count !== 2) {
+        line.geometry.dispose();
+        line.geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+      } else {
+        positions.setXYZ(0, start.x, start.y, start.z);
+        positions.setXYZ(1, end.x, end.y, end.z);
+        positions.needsUpdate = true;
+        line.geometry.computeBoundingSphere();
+      }
+    }
+
+    // Satellite -> DSN paths are scene-level objects, independent of lunar rotation.
+    const relayDsnBeamMap = {};
+    const activeRelayBeamMap = {};
     function update3DRelaysAndLinks(sample) {
       if (!satMeshMap || !satLinkGroup || !moonSystemGroup) return;
 
@@ -1639,27 +1721,53 @@
         mesh.visible = state.showRelayOrbits;
       });
 
-      // Rebuild active communication beams from inspected site to overhead relay satellites
-      while (satLinkGroup.children.length) {
-        satLinkGroup.remove(satLinkGroup.children[0]);
-      }
-
+      // Reuse relay beam meshes; only update their endpoints and visibility each frame.
       const siteLocalOrigin = latLonToVec3(state.lat, state.lon, 1.015);
-
+      for (const beam of Object.values(activeRelayBeamMap)) beam.visible = false;
       if (state.showRelayOrbits) {
         (sample.visibleRelays || []).forEach(rel => {
           const mesh = satMeshMap[rel.id];
           if (!mesh) return;
+          let beam = activeRelayBeamMap[rel.id];
+          if (!beam) {
+            beam = new THREE.Line(
+              new THREE.BufferGeometry().setFromPoints([siteLocalOrigin, siteLocalOrigin]),
+              new THREE.LineBasicMaterial({ color: 0xc084fc, transparent: true, opacity: 0.92 })
+            );
+            activeRelayBeamMap[rel.id] = beam;
+            satLinkGroup.add(beam);
+          }
           const satelliteWorld = mesh.getWorldPosition(new THREE.Vector3());
           const satelliteLocal = moonSystemGroup.worldToLocal(satelliteWorld);
-          const beamGeo = new THREE.BufferGeometry().setFromPoints([siteLocalOrigin, satelliteLocal]);
-          const beamMat = new THREE.LineBasicMaterial({
-            color: 0xc084fc,
-            transparent: true,
-            opacity: 0.92
-          });
-          satLinkGroup.add(new THREE.Line(beamGeo, beamMat));
+          setBeamEndpoints(beam, siteLocalOrigin, satelliteLocal);
+          beam.visible = true;
         });
+      }
+
+      // Show satellite -> Earth DSN hops only when BOTH bodies leave the physical
+      // (unscaled) straight line unobstructed and the ground station sees the craft.
+      for (const line of Object.values(relayDsnBeamMap)) line.visible = false;
+      if (state.showRelayOrbits && state.showDteBeam) {
+        for (const sat of (sample.allRelays || [])) {
+          const mesh = satMeshMap[sat.id];
+          if (!mesh) continue;
+          const satWorldDraw = mesh.getWorldPosition(new THREE.Vector3());
+          for (const link of (sat.dsnLinks || [])) {
+            const key = `${sat.id}:${link.stationId}`;
+            let line = relayDsnBeamMap[key];
+            if (!line) {
+              line = new THREE.Line(new THREE.BufferGeometry(),
+                new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.55 }));
+              scene.add(line);
+              relayDsnBeamMap[key] = line;
+            }
+            const marker = dsnMarkers[link.stationId];
+            if (!marker) continue;
+            const groundDraw = marker.getWorldPosition(new THREE.Vector3());
+            setBeamEndpoints(line, satWorldDraw, groundDraw);
+            line.visible = true;
+          }
+        }
       }
 
       // Direct straight segments terminate exactly at real, Earth-fixed DSN markers.
@@ -1676,8 +1784,7 @@
         marker.visible = state.showDteBeam;
         beam.visible = state.showDteBeam && station.visible;
         if (beam.visible) {
-          beam.geometry.dispose();
-          beam.geometry = new THREE.BufferGeometry().setFromPoints([siteWorld, surface]);
+          setBeamEndpoints(beam, siteWorld, surface);
         }
       });
     }
@@ -1824,11 +1931,36 @@
       return state.moonImageData.data[(py * w + px) * 4];
     }
 
+    // The cache is only for multi-day statistics and timeline strips. Live playback
+    // evaluates the ephemeris and visibility at the exact time, without sample snapping.
     function getCurrentSample() {
       const cache = state.activeWindowCache;
       if (!cache) return null;
-      const idx = Math.min(cache.steps, Math.max(0, Math.round(state.scrubFrac * cache.steps)));
-      return { sample: cache.samples[idx], idx };
+      const fraction = Math.max(0, Math.min(1, state.scrubFrac));
+      const idx = Math.min(cache.steps, Math.max(0, Math.round(fraction * cache.steps)));
+      const tMs = state.startDate.getTime() + fraction * state.durationDays * 86400000;
+      const dateObj = new Date(tMs);
+      const eph = getEphemeris(dateObj);
+      const sun = getAzEl(state.lat, state.lon, eph.sunLat, eph.sunLon);
+      const earth = getAzEl(state.lat, state.lon, eph.earthLat, eph.earthLon);
+      const sunHor = horizonAtAz(cache.profile, sun.az);
+      const earthHor = horizonAtAz(cache.profile, earth.az);
+      const sunLit = sun.el > sunHor;
+      const lunarEarthClear = earth.el > earthHor;
+      const dsn = getDsnVisibility(lunarEarthClear, dateObj);
+      const relays = getRelayVisibilityAtSite(state.lat, state.lon, cache.profile, dateObj);
+      const earthLit = dsn.visible.length > 0;
+      const satDsn = getRelayDsnLinks(relays, dateObj, eph);
+      const relayLit = satDsn.reachable.length > 0;
+      const sample = {
+        tMs, offsetDays: fraction * state.durationDays, eph, sun, earth,
+        sunHor, earthHor, sunLit, lunarEarthClear, dsn, earthLit, relayLit,
+        anyComms: earthLit || relayLit,
+        visibleRelays: relays.visible, linkedRelays: satDsn.reachable,
+        satDsnLinks: satDsn.links, allRelays: relays.allSats,
+        flux: getHorizontalSolarFlux(sun.el, sunLit)
+      };
+      return { sample, idx };
     }
 
     function render2D() {
@@ -2115,7 +2247,7 @@
             <div class="flex items-center justify-between mt-1.5 text-[10px] mono">
               <div class="flex items-center gap-2">
                 <span class="text-amber-300">☀ ${Math.round(stats.sunPct)}%</span>
-                <span class="text-sky-300">● ${Math.round(stats.earthPct)}%</span>
+                <span class="text-sky-300">● ${Math.round(stats.anyCommsPct)}%</span>
                 <span class="text-violet-300">🛰 ${Math.round(stats.relayPct)}%</span>
               </div>
               <button type="button"
@@ -2175,7 +2307,10 @@
           const earthLitNow = getDsnVisibility(
             earthNow.el > horizonAtAz(stats.profile, earthNow.az), simDate
           ).visible.length > 0;
-          const relaysNow = getRelayVisibilityAtSite(pin.lat, pin.lon, stats.profile, simDate).visible;
+          const relayInfoNow = getRelayVisibilityAtSite(pin.lat, pin.lon, stats.profile, simDate);
+          const relayLinkedNow = getRelayDsnLinks(relayInfoNow, simDate, ephNow).reachable;
+          const relaysNow = relayInfoNow.visible;
+          const commsNow = earthLitNow || relayLinkedNow.length > 0;
 
           return `
           <div onclick="selectCoordinates(${pin.lat}, ${pin.lon}, '${pin.name.replace(/'/g, "\\'")}')"
@@ -2193,7 +2328,7 @@
               <span>${pin.lat.toFixed(2)}°, ${pin.lon.toFixed(2)}°E</span>
               <span>
                 <span class="${sunLitNow ? "text-amber-300" : "text-slate-500"}">${sunLitNow ? "☀ Lit" : "◐ Shadow"}</span> ·
-                <span class="${earthLitNow ? "text-sky-300" : "text-rose-400"}">${earthLitNow ? "● DTE" : "✕ DTE"}</span> ·
+                <span class="${commsNow ? "text-sky-300" : "text-rose-400"}">${commsNow ? "● Earth" : "✕ Earth"}</span> ·
                 <span class="${relaysNow.length > 0 ? "text-violet-300" : "text-slate-500"}">🛰 ${relaysNow.length}</span>
               </span>
             </div>
@@ -2204,11 +2339,11 @@
                 <div class="font-bold text-amber-300">${Math.round(stats.sunPct)}%</div>
               </div>
               <div class="bg-slate-950/70 rounded p-1">
-                <div class="text-[9px] text-slate-400">Direct DTE</div>
-                <div class="font-bold text-sky-300">${Math.round(stats.earthPct)}%</div>
+                <div class="text-[9px] text-slate-400">Earth Link</div>
+                <div class="font-bold text-sky-300">${Math.round(stats.anyCommsPct)}%</div>
               </div>
               <div class="bg-slate-950/70 rounded p-1">
-                <div class="text-[9px] text-slate-400">Relay Sat</div>
+                <div class="text-[9px] text-slate-400">Relay Link</div>
                 <div class="font-bold text-violet-300">${Math.round(stats.relayPct)}%</div>
               </div>
             </div>
@@ -2236,7 +2371,7 @@
         ctx.fillStyle = s.sunLit ? "#f59e0b" : "#1e293b";
         ctx.fillRect(i * segW, 0, Math.ceil(segW), trackH - 0.5);
 
-        ctx.fillStyle = s.earthLit ? "#38bdf8" : "#3f1d2e";
+        ctx.fillStyle = s.anyComms ? "#38bdf8" : "#3f1d2e";
         ctx.fillRect(i * segW, trackH + 0.25, Math.ceil(segW), trackH - 0.5);
 
         ctx.fillStyle = s.relayLit ? "#a78bfa" : "#1e1b4b";
@@ -2306,7 +2441,7 @@
 
       document.getElementById("avg-score-badge").textContent = `Score ${cache.score}/100`;
       document.getElementById("stat-sun-avg").textContent = `${cache.sunPct.toFixed(1)}% (${Math.round(cache.sunHours)}h)`;
-      document.getElementById("stat-earth-avg").textContent = `${cache.earthPct.toFixed(1)}% (${Math.round(cache.earthHours)}h)`;
+      document.getElementById("stat-earth-avg").textContent = `${cache.anyCommsPct.toFixed(1)}% (${Math.round(cache.anyCommsPct * cache.totalHours / 100)}h)`;
       document.getElementById("stat-relay-avg").textContent = `${cache.relayPct.toFixed(1)}% (${Math.round(cache.relayHours)}h)`;
       document.getElementById("stat-overlap-avg").textContent = `${cache.overlapPct.toFixed(1)}% (${Math.round(cache.overlapHours)}h)`;
 
@@ -2316,7 +2451,7 @@
       updateInstantaneousTelemetry();
     }
 
-    function updateInstantaneousTelemetry() {
+    function updateInstantaneousTelemetry(skipSceneUpdate = false) {
       const cur = getCurrentSample();
       if (!cur) return;
       const { sample, idx } = cur;
@@ -2324,8 +2459,10 @@
       const simDate = new Date(sample.tMs);
 
       // 1. Update 3D Earth, Sun, Moon Orbital Position, Tidal Locking & Relay Links
-      updateEarthMoonSun3D(sample.eph, simDate);
-      update3DRelaysAndLinks(sample);
+      if (!skipSceneUpdate) {
+        updateEarthMoonSun3D(sample.eph, simDate);
+        update3DRelaysAndLinks(sample);
+      }
 
       // Update Lunar Phase Pill in Bottom Bar
       const phasePill = document.getElementById("lunar-phase-pill");
@@ -2352,51 +2489,68 @@
       document.getElementById("sun-detail").textContent = `El ${sample.sun.el >= 0 ? "+" : ""}${sample.sun.el.toFixed(1)}° (Rim ${sample.sunHor.toFixed(1)}°)`;
       document.getElementById("sun-next").textContent = getNextTransitionInCache(cache, idx, "sunLit");
 
-      // 4. Live Earth DTE Card
+      // 4. End-to-end Earth availability: direct base→DSN OR base→relay→DSN.
+      // The direct-only value is retained for diagnostic paths and beam drawing.
       const earthCard = document.getElementById("earth-card");
       const earthStatus = document.getElementById("earth-status");
-      earthStatus.textContent = sample.earthLit ? `${sample.dsn.visible.length}/3 STATIONS IN SIGHT` : "NO DSN LINK";
-      earthStatus.className = `font-bold text-sm mt-0.5 ${sample.earthLit ? "text-sky-300" : "text-rose-400"}`;
-      earthCard.className = sample.earthLit
+      const mode = sample.earthLit && sample.relayLit ? "Direct + relay"
+        : sample.earthLit ? "Direct to DSN"
+        : sample.relayLit ? "Via relay" : "No route";
+      earthStatus.textContent = sample.anyComms ? "CONNECTED TO EARTH" : "NO EARTH CONNECTION";
+      earthStatus.className = `font-bold text-sm mt-0.5 ${sample.anyComms ? "text-sky-300" : "text-rose-400"}`;
+      earthCard.className = sample.anyComms
         ? "rounded-xl p-2 border border-sky-400/30 bg-sky-500/10 transition-colors"
         : "rounded-xl p-2 border border-rose-500/30 bg-rose-500/10 transition-colors";
-      document.getElementById("earth-lib-live").textContent = `Lib ${sample.eph.earthLat >= 0 ? "+" : ""}${sample.eph.earthLat.toFixed(1)}°`;
-      document.getElementById("earth-detail").textContent = `Moon→Earth El ${sample.earth.el >= 0 ? "+" : ""}${sample.earth.el.toFixed(1)}° (Rim ${sample.earthHor.toFixed(1)}°)`;
-      document.getElementById("earth-next").textContent = getNextTransitionInCache(cache, idx, "earthLit");
-      document.getElementById("dsn-station-list").innerHTML = sample.dsn.stations.map(station => `
-        <div class="flex justify-between gap-2 text-[10px] mono" title="${station.country}: station elevation ${station.elevationDeg.toFixed(1)}°">
+      document.getElementById("earth-lib-live").textContent = mode;
+      document.getElementById("earth-detail").textContent =
+        `${sample.dsn.visible.length} direct station(s) · ${sample.linkedRelays.length} linked relay(s)`;
+      document.getElementById("earth-next").textContent = getNextTransitionInCache(cache, idx, "anyComms");
+      // Per station: a path exists if either a direct hop or a complete relay path reaches it.
+      const relayStationIds = new Set((sample.satDsnLinks || [])
+        .filter(link => sample.linkedRelays.some(sat => sat.id === link.satelliteId))
+        .map(link => link.stationId));
+      document.getElementById("dsn-station-list").innerHTML = sample.dsn.stations.map(station => {
+        const viaRelay = relayStationIds.has(station.id);
+        const reachable = station.visible || viaRelay;
+        const path = station.visible && viaRelay ? "DIRECT + RELAY"
+          : station.visible ? "DIRECT" : viaRelay ? "RELAY" : "NO LINK";
+        return `<div class="flex justify-between gap-2 text-[10px] mono">
           <span style="color:${station.color}">● ${station.name}</span>
-          <span class="${station.visible ? 'text-emerald-300' : 'text-rose-300'}">
-            ${station.visible ? 'CONNECTED' : 'NO LINK'} · ${station.elevationDeg >= 0 ? '+' : ''}${station.elevationDeg.toFixed(1)}°
-          </span>
-        </div>`).join("");
+          <span class="${reachable ? 'text-emerald-300' : 'text-rose-300'}">${path}</span>
+        </div>`;
+      }).join("");
 
       // 5. Live Relay Satellite Constellation Card
       const visRelays = sample.visibleRelays || [];
+      const linkedRelays = sample.linkedRelays || [];
       const relayCard = document.getElementById("relay-card");
-      document.getElementById("relay-count-live").textContent = `${visRelays.length}/4 Overhead`;
-      if (visRelays.length > 0) {
+      document.getElementById("relay-count-live").textContent = `${linkedRelays.length}/4 Linked · ${visRelays.length} Overhead`;
+      if (linkedRelays.length > 0) {
         relayCard.className = "rounded-xl p-2 border border-violet-400/35 bg-violet-500/10 transition-colors";
-        document.getElementById("relay-status").textContent = visRelays
-          .map(r => `${r.id} (+${r.el.toFixed(0)}°)`)
+        document.getElementById("relay-status").textContent = linkedRelays
+          .map(r => `${r.id} → ${r.dsnLinks.map(l => l.stationName).join('/')}`)
           .join(" · ");
       } else {
         relayCard.className = "rounded-xl p-2 border border-slate-700/70 bg-slate-900/60 transition-colors";
-        document.getElementById("relay-status").textContent = "No Relay Above 5.0° Mask";
+        document.getElementById("relay-status").textContent = visRelays.length
+          ? `${visRelays.length} satellite(s) overhead; no Earth downlink`
+          : "No Relay Above 5.0° Mask";
       }
       const linkMode =
-        sample.earthLit && visRelays.length > 0
+        sample.earthLit && linkedRelays.length > 0
           ? "DTE + Relay Redundant"
           : sample.earthLit
             ? "Direct-to-Earth Only"
-            : visRelays.length > 0
+            : linkedRelays.length > 0
               ? "Relay Satellite Bridge"
               : "Comms Blackout";
-      document.getElementById("relay-detail").textContent = `Mask ≥5.0° El · Mode: ${linkMode}`;
+      const hopSummary = (sample.satDsnLinks || []).length;
+      document.getElementById("relay-detail").textContent =
+        `Mask ≥5.0° · ${hopSummary} sat→DSN paths · Mode: ${linkMode}`;
 
       // 6. Simulated Timestamp Readout
       const iso = simDate.toISOString();
-      document.getElementById("sim-utc-readout").textContent = `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
+      document.getElementById("sim-utc-readout").textContent = `${iso.slice(0, 10)} ${iso.slice(11, 19)} UTC`;
       document.getElementById("sim-offset-readout").textContent = `+${sample.offsetDays.toFixed(1)}d / ${state.durationDays.toFixed(0)}d`;
 
       drawWindowTimelineStrip();
@@ -2473,7 +2627,9 @@
     }
 
     function cyclePlaySpeed() {
-      state.playSpeed = state.playSpeed === 1 ? 3 : 1;
+      const speeds = [0.25, 0.5, 1, 2, 4];
+      const next = (speeds.indexOf(state.playSpeed) + 1) % speeds.length;
+      state.playSpeed = speeds[next];
       document.getElementById("speed-btn").textContent = `${state.playSpeed}x`;
     }
 
@@ -2517,14 +2673,29 @@
 
     function animationLoop(now) {
       requestAnimationFrame(animationLoop);
-      const dtSec = Math.min(0.1, (now - state.lastFrameMs) / 1000);
+      // Use actual elapsed wall time, capped to avoid jumping after background-tab pauses.
+      const dtSec = Math.max(0, Math.min(0.05, (now - state.lastFrameMs) / 1000));
       state.lastFrameMs = now;
 
       if (state.isPlaying) {
-        const rate = (1 / 14) * state.playSpeed;
-        state.scrubFrac = (state.scrubFrac + dtSec * rate) % 1.0;
-        document.getElementById("time-scrubber").value = state.scrubFrac.toFixed(4);
-        updateInstantaneousTelemetry();
+        // 1x = one simulated hour per real second; time is continuous, not day-stepped.
+        // Scale by the selected window so 7/14/29.5-day views have the same true speed.
+        const simulatedSeconds = dtSec * state.playSpeed * 3600;
+        state.scrubFrac += simulatedSeconds / (state.durationDays * 86400);
+        if (state.scrubFrac >= 1) state.scrubFrac %= 1;
+        document.getElementById("time-scrubber").value = state.scrubFrac.toFixed(6);
+
+        const cur = getCurrentSample();
+        if (cur) {
+          // Animate geometry on every display frame (~60 fps). The heavier UI,
+          // timelines and 2D maps run at 5 Hz to avoid unnecessary canvas work.
+          updateEarthMoonSun3D(cur.sample.eph, new Date(cur.sample.tMs));
+          update3DRelaysAndLinks(cur.sample);
+          if (now - state.lastTelemetryMs >= 200) {
+            state.lastTelemetryMs = now;
+            updateInstantaneousTelemetry(true);
+          }
+        }
       }
 
       if (state.view === "globe" && renderer) {
