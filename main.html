@@ -145,7 +145,7 @@
     <button id="toggle-dte-beam-btn" type="button" onclick="toggleDteBeam()"
       class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 font-medium transition">
       <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-      <span id="dte-beam-label">Earth Link: ON</span>
+      <span id="dte-beam-label">DSN Links: ON</span>
     </button>
 
     <span class="text-slate-600 pointer-events-none">•</span>
@@ -333,12 +333,13 @@
 
       <div id="earth-card" class="rounded-xl p-2 border border-sky-400/30 bg-sky-500/10 transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase tracking-wider text-slate-400">Earth DTE</span>
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">DSN Earth link</span>
           <span id="earth-lib-live" class="text-[10px] mono text-sky-300">Lib +4.2°</span>
         </div>
         <div id="earth-status" class="font-bold text-sm text-sky-300 mt-0.5">LINE OF SIGHT</div>
         <div id="earth-detail" class="text-[10px] text-slate-300 mono mt-0.5">El +4.8° (Rim +0.2°)</div>
         <div id="earth-next" class="text-[10px] text-sky-200/80 mono mt-1 pt-1 border-t border-sky-500/20">Clear &gt; 14d</div>
+        <div id="dsn-station-list" class="space-y-1 mt-1.5 pt-1.5 border-t border-sky-500/20" aria-label="DSN station visibility"></div>
       </div>
     </div>
 
@@ -380,7 +381,7 @@
 
       <div class="flex justify-between text-[9px] text-slate-400">
         <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-amber-400 inline-block rounded-xs"></span>Sun Lit</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-sky-400 inline-block rounded-xs"></span>Earth DTE</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-sky-400 inline-block rounded-xs"></span>DSN ≥1 link</span>
         <span class="flex items-center gap-1"><span class="w-2 h-1.5 bg-violet-400 inline-block rounded-xs"></span>Relay Sat</span>
       </div>
     </div>
@@ -400,7 +401,7 @@
           <div id="stat-sun-avg" class="mono font-bold text-amber-300 mt-0.5">85.0% (286h)</div>
         </div>
         <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
-          <div class="text-[9px] text-slate-400">Direct Earth (DTE)</div>
+          <div class="text-[9px] text-slate-400">DSN Ground Link</div>
           <div id="stat-earth-avg" class="mono font-bold text-sky-300 mt-0.5">96.4% (324h)</div>
         </div>
         <div class="bg-slate-950/80 rounded-lg p-1.5 border border-slate-800/80">
@@ -465,6 +466,10 @@
           </p>
         </div>
 
+        <div>
+          <h4 class="font-semibold text-sky-300 uppercase tracking-wider text-[11px]">3. Three DSN Ground Station Links</h4>
+          <p class="text-slate-300 mt-1">The Madrid (Spain), Goldstone (USA), and Canberra (Australia) complexes are Earth-fixed at their geographic coordinates, rotating only with Earth. Each direct line terminates at its station rather than at Earth's center. The lunar relay orbital planes remain fixed in a Moon-centered inertial frame instead of rotating with the tidally locked lunar surface. The complexes are checked independently. A direct link exists only when Earth clears the selected lunar location's modeled terrain horizon <strong>and</strong> the Moon is above that DSN station's geometric horizon at the simulated UTC time. Link beams and connection statistics use this same rule. Ground-station availability, actual antenna pointing, weather, terrain at the station, radio link budget, and mission scheduling are not modeled. Lunar positions use a low-precision analytical ephemeris.</p>
+        </div>
         <div>
           <h4 class="font-semibold text-violet-300 uppercase tracking-wider text-[11px]">
             3. NASA LunaNet / LCRNS Relay Satellites &amp; Frozen Polar Orbits
@@ -573,6 +578,14 @@
         cssColor: "#f472b6"
       }
     ];
+    // Official NASA/JPL DSN complex coordinates (representative site center positions).
+    const DSN_STATIONS = [
+      { id: "madrid", name: "Madrid", country: "Spain", lat: 40.42917, lon: -4.24972, color: "#38bdf8", threeColor: 0x38bdf8 },
+      { id: "goldstone", name: "Goldstone", country: "USA", lat: 35.28139, lon: -116.77889, color: "#fbbf24", threeColor: 0xfbbf24 },
+      { id: "canberra", name: "Canberra", country: "Australia", lat: -35.40167, lon: 148.98222, color: "#34d399", threeColor: 0x34d399 }
+    ];
+    const DSN_MIN_ELEVATION_DEG = 0; // Geometric, ideal horizon; not actual antenna scheduling.
+
     const RELAY_MIN_EL_DEG = 5.0; // NASA LCRNS Service Volume II elevation mask
 
     const PIN_COLORS = [
@@ -671,6 +684,37 @@
       };
     }
 
+    // Low-precision lunar RA/Dec + Greenwich sidereal angle: Earth rotation and the
+    // geographic horizon of each real DSN complex. All times are UTC.
+    // This is a planning visualization, not JPL Horizons or operational DSN access.
+    function getEarthDsnGeometry(dateObj) {
+      const d = (dateObj.getTime() - Date.UTC(2000, 0, 1, 12)) / 86400000;
+      const L = norm360(218.316 + 13.176396 * d);
+      const M = norm360(134.963 + 13.064993 * d) * DEG;
+      const F = norm360(93.272 + 13.229350 * d) * DEG;
+      const lambda = (L + 6.289 * Math.sin(M)) * DEG;
+      const beta = (5.128 * Math.sin(F)) * DEG;
+      const ob = 23.439291 * DEG;
+      const ra = norm360(Math.atan2(Math.sin(lambda) * Math.cos(ob) - Math.tan(beta) * Math.sin(ob), Math.cos(lambda)) * RAD);
+      const dec = Math.asin(Math.sin(beta) * Math.cos(ob) + Math.cos(beta) * Math.sin(ob) * Math.sin(lambda)) * RAD;
+      const gmst = norm360(280.46061837 + 360.98564736629 * d);
+      return { ra, dec, gmst, subLat: dec, subLon: ((ra - gmst + 540) % 360) - 180 };
+    }
+
+    function getDsnVisibility(earthAboveLunarHorizon, dateObj) {
+      const geo = getEarthDsnGeometry(dateObj);
+      const stations = DSN_STATIONS.map(station => {
+        const hourAngle = (geo.gmst + station.lon - geo.ra) * DEG;
+        const phi = station.lat * DEG;
+        const dec = geo.dec * DEG;
+        const sinEl = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(hourAngle);
+        const elevationDeg = Math.asin(Math.max(-1, Math.min(1, sinEl))) * RAD;
+        return { ...station, elevationDeg, earthVisible: elevationDeg > DSN_MIN_ELEVATION_DEG,
+                 visible: earthAboveLunarHorizon && elevationDeg > DSN_MIN_ELEVATION_DEG };
+      });
+      return { stations, visible: stations.filter(station => station.visible), geo };
+    }
+
     function getLunarPhaseName(phaseFrac) {
       if (phaseFrac < 0.03 || phaseFrac >= 0.97) return "New Moon";
       if (phaseFrac < 0.22) return "Waxing Crescent";
@@ -703,7 +747,9 @@
 
       const u = nu + sat.argPeDeg * DEG;
       const inc = sat.incDeg * DEG;
-      const raan = norm360(sat.raanDeg - 0.045 * (elapsedHours / 24)) * DEG;
+      // Fixed inertial node for the nominal two-body model. Do not rotate with lunar surface.
+      // Long-term nodal precession requires a validated high-fidelity lunar gravity model.
+      const raan = sat.raanDeg * DEG;
 
       const cosO = Math.cos(raan);
       const sinO = Math.sin(raan);
@@ -716,10 +762,7 @@
       const yKm = rKm * (sinO * cosU + cosO * sinU * cosI);
       const zKm = rKm * (sinU * sinI);
 
-      const lat = Math.asin(Math.max(-1, Math.min(1, zKm / rKm))) * RAD;
-      const lon = Math.atan2(yKm, xKm) * RAD;
-
-      return { xKm, yKm, zKm, rKm, lat, lon };
+      return { xKm, yKm, zKm, rKm };
     }
 
     /**
@@ -738,12 +781,17 @@
 
       const allSats = [];
       const visible = [];
+      const eph = getEphemeris(dateObj);
+      const worldToBody = lunarBodyToWorldQuaternion(eph).invert();
 
       for (const sat of RELAY_SATELLITES) {
         const pos = propagateRelaySatellite(sat, dateObj);
-        const dx = pos.xKm - obsX;
-        const dy = pos.yKm - obsY;
-        const dz = pos.zKm - obsZ;
+        const body = inertialSatelliteVector(pos).applyQuaternion(worldToBody);
+        // Convert Three.js (X, north=Y, east=-Z) to the existing
+        // selenographic Cartesian convention (x, east=y, north=z).
+        const dx = body.x - obsX;
+        const dy = -body.z - obsY;
+        const dz = body.y - obsZ;
         const rangeKm = Math.hypot(dx, dy, dz);
 
         const east = -sinLon * dx + cosLon * dy;
@@ -762,9 +810,12 @@
           az,
           el,
           rangeKm,
-          lat: pos.lat,
-          lon: pos.lon,
+          lat: Math.asin(Math.max(-1, Math.min(1, body.y / pos.rKm))) * RAD,
+          lon: Math.atan2(-body.z, body.x) * RAD,
           rKm: pos.rKm,
+          inertialXKm: pos.xKm,
+          inertialYKm: pos.yKm,
+          inertialZKm: pos.zKm,
           cssColor: sat.cssColor,
           colorHex: sat.colorHex,
           visible: isVis
@@ -894,7 +945,9 @@
         const earthHor = horizonAtAz(profile, earth.az);
 
         const sunLit = sun.el > sunHor;
-        const earthLit = earth.el > earthHor;
+        const lunarEarthClear = earth.el > earthHor;
+        const dsn = getDsnVisibility(lunarEarthClear, dateObj);
+        const earthLit = dsn.visible.length > 0;
         const relayLit = relayInfo.visible.length > 0;
         const anyComms = earthLit || relayLit;
 
@@ -908,6 +961,8 @@
           earth,
           sunHor,
           earthHor,
+          lunarEarthClear,
+          dsn,
           sunLit,
           earthLit,
           relayLit,
@@ -1031,6 +1086,7 @@
     let moonSystemGroup, moonMesh, pinGroup;
     let satOrbitGroup, satMeshMap = {}, satLinkGroup;
     let moonOrbitLine, earthDteLine;
+    let dsnBeams = {}, dsnMarkers = {};
     let prevMoonWorldPos = null;
 
     // Converts selenocentric (lat, lon, r) in MOON_ME frame to local Three.js Vector3
@@ -1173,6 +1229,55 @@
       return new THREE.Vector3(xEcl, zEcl, -yEcl);
     }
 
+    // One MOON_ME -> world rotation shared by the 3D drawing and lunar LOS calculations.
+    // Its evolving tidal rotation is NOT applied to Moon-centered inertial satellite orbits.
+    function lunarBodyToWorldQuaternion(eph) {
+      const moonPos = getMoonGeocentricPos3D(eph);
+      const towardEarth = moonPos.clone().negate().normalize();
+      const nodeLon = eph.ascendingNode + Math.PI;
+      const pole = new THREE.Vector3(
+        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.sin(nodeLon),
+        Math.cos(MOON_AXIAL_OBLIQUITY_RAD),
+        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.cos(nodeLon)
+      ).normalize();
+      const wz = new THREE.Vector3().crossVectors(towardEarth, pole).normalize();
+      const wy = new THREE.Vector3().crossVectors(wz, towardEarth).normalize();
+      const worldBasis = new THREE.Matrix4().makeBasis(towardEarth, wy, wz);
+      const subEarth = latLonToVec3(eph.earthLat, eph.earthLon, 1).normalize();
+      const lz = new THREE.Vector3().crossVectors(subEarth, new THREE.Vector3(0, 1, 0)).normalize();
+      const ly = new THREE.Vector3().crossVectors(lz, subEarth).normalize();
+      const lunarBasis = new THREE.Matrix4().makeBasis(subEarth, ly, lz);
+      return new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().multiplyMatrices(worldBasis, lunarBasis.clone().transpose())
+      );
+    }
+
+    // Inertial ecliptic (X,Y,Z pole) -> Three.js inertial scene (X,Y-up,-Z).
+    function inertialSatelliteVector(pos, scale = 1) {
+      return new THREE.Vector3(pos.xKm * scale, pos.zKm * scale, -pos.yKm * scale);
+    }
+
+    function inertialSatelliteToLunar(pos, eph) {
+      return inertialSatelliteVector(pos, 1).applyQuaternion(lunarBodyToWorldQuaternion(eph).invert());
+    }
+
+    // Earth geographical spin axis is fixed in the world ecliptic frame rather than
+    // following the instantaneous direction of the Moon.
+    function earthFixedToWorldQuaternion(geo, moonPos) {
+      const toMoon = moonPos.clone().normalize();
+      const axis = new THREE.Vector3(0, Math.cos(23.439291 * DEG), Math.sin(23.439291 * DEG));
+      const worldZ = new THREE.Vector3().crossVectors(toMoon, axis).normalize();
+      const worldY = new THREE.Vector3().crossVectors(worldZ, toMoon).normalize();
+      const worldFrame = new THREE.Matrix4().makeBasis(toMoon, worldY, worldZ);
+      const subLocal = latLonToVec3(geo.subLat, geo.subLon, 1).normalize();
+      const localZ = new THREE.Vector3().crossVectors(subLocal, new THREE.Vector3(0, 1, 0)).normalize();
+      const localY = new THREE.Vector3().crossVectors(localZ, subLocal).normalize();
+      const localFrame = new THREE.Matrix4().makeBasis(subLocal, localY, localZ);
+      return new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().multiplyMatrices(worldFrame, localFrame.clone().transpose())
+      );
+    }
+
     /**
      * Computes the Sun's 3D geocentric direction unit vector in Three.js world space.
      */
@@ -1242,7 +1347,7 @@
       // A. CENTRAL EARTH AT GEOCENTRIC ORIGIN (0, 0, 0) WITH 23.44° OBLIQUITY
       // =======================================================================
       earthGroup = new THREE.Group();
-      earthGroup.rotation.z = 23.44 * DEG;
+      earthGroup.rotation.z = 0; // Earth axis and sidereal rotation are applied as a single orientation quaternion
       scene.add(earthGroup);
 
       const earthCanvas = buildProceduralEarthCanvas();
@@ -1324,6 +1429,22 @@
       earthDteLine = new THREE.Line(new THREE.BufferGeometry(), dteMat);
       scene.add(earthDteLine);
 
+      // Three independently gated lunar-to-DSN ground station links.
+      DSN_STATIONS.forEach(station => {
+        const beam = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({
+          color: station.threeColor, transparent: true, opacity: 0.92
+        }));
+        scene.add(beam);
+        dsnBeams[station.id] = beam;
+        const marker = new THREE.Mesh(
+          new THREE.SphereGeometry(0.075, 12, 8),
+          new THREE.MeshBasicMaterial({ color: station.threeColor })
+        );
+        earthMesh.add(marker); // Earth-fixed geodetic lat/lon: never parent to the Moon.
+        marker.position.copy(latLonToVec3(station.lat, station.lon, EARTH_RADIUS_3D * 1.016));
+        dsnMarkers[station.id] = marker;
+      });
+
       // =======================================================================
       // D. ORBITING & TIDALLY-LOCKED MOON SYSTEM GROUP (MOON_ME LOCAL FRAME)
       // =======================================================================
@@ -1351,7 +1472,7 @@
       pinGroup = new THREE.Group();
       moonSystemGroup.add(pinGroup);
 
-      // Relay Satellite Orbits & Spacecraft (inside moonSystemGroup so they orbit the moving Moon!)
+      // Relay satellite planes are moon-centered but inertial (not inside the lunar body group).
       init3DRelayConstellation();
 
       // Set Initial Position & Orientation before positioning camera
@@ -1416,36 +1537,11 @@
       }
       prevMoonWorldPos = moonPos.clone();
 
-      // 2. Exact Tidal Locking + Optical Libration Quaternion (M_world * M_local^T):
-      // Unit vector from Moon center to Earth center in world space
-      const e1World = moonPos.clone().negate().normalize();
-
-      // Lunar spin north pole in world space (tilted 1.54° from ecliptic +Y normal, precessing with ascending node)
-      const nodeLon = eph.ascendingNode + Math.PI;
-      const lunarNorthWorld = new THREE.Vector3(
-        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.sin(nodeLon),
-        Math.cos(MOON_AXIAL_OBLIQUITY_RAD),
-        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.cos(nodeLon)
-      ).normalize();
-
-      // Orthonormal world basis [e1World, e2World, e3World]
-      const e3World = new THREE.Vector3().crossVectors(e1World, lunarNorthWorld).normalize();
-      const e2World = new THREE.Vector3().crossVectors(e3World, e1World).normalize();
-      const mWorld = new THREE.Matrix4().makeBasis(e1World, e2World, e3World);
-
-      // Corresponding orthonormal local MOON_ME basis [e1Local, e2Local, e3Local]
-      // In Three.js SphereGeometry, lat=0°, lon=0° (prime meridian) is (+1, 0, 0)
-      const e1Local = latLonToVec3(eph.earthLat, eph.earthLon, 1).normalize();
-      const northLocal = new THREE.Vector3(0, 1, 0);
-      const e3Local = new THREE.Vector3().crossVectors(e1Local, northLocal).normalize();
-      const e2Local = new THREE.Vector3().crossVectors(e3Local, e1Local).normalize();
-      const mLocal = new THREE.Matrix4().makeBasis(e1Local, e2Local, e3Local);
-
-      // R = M_world * M_local^T maps e1Local -> e1World (points 0° prime meridian directly at Earth!)
-      const mLocalTranspose = mLocal.clone().transpose();
-      const rotMatrix = new THREE.Matrix4().multiplyMatrices(mWorld, mLocalTranspose);
-      moonSystemGroup.quaternion.setFromRotationMatrix(rotMatrix);
+      // 2. Tidal lock / libration applies to lunar crust, not to inertial relay trajectories.
+      moonSystemGroup.quaternion.copy(lunarBodyToWorldQuaternion(eph));
       moonSystemGroup.updateMatrixWorld(true);
+      if (satOrbitGroup) satOrbitGroup.position.copy(moonPos);
+
 
       // 3. Transform local sub-solar vector (eph.sunLat, eph.sunLon) into world space
       // Ensures 100% agreement between 3D sunlit terminator, lunar phase, and telemetry calculations
@@ -1456,13 +1552,11 @@
       sunGroup.position.copy(sunWorldPos);
       sunLight.position.copy(sunWorldPos);
 
-      // 4. Rotate Earth around its polar axis according to UTC time of day + seasonal solar longitude
-      const sunEclipticAngle = Math.atan2(-sunFromMoonWorld.z, sunFromMoonWorld.x);
-      const utcHours =
-        dateObj.getUTCHours() +
-        dateObj.getUTCMinutes() / 60 +
-        dateObj.getUTCSeconds() / 3600;
-      earthMesh.rotation.y = sunEclipticAngle + (utcHours / 24) * Math.PI * 2 + Math.PI;
+      // 4. Earth-fixed station markers are children of the textured Earth mesh.
+      // Apply one shared Earth-fixed -> inertial orientation to both: stations cannot
+      // slide across the globe or inherit the Moon's translation/rotation.
+      earthMesh.quaternion.copy(earthFixedToWorldQuaternion(getEarthDsnGeometry(dateObj), moonPos));
+      earthMesh.updateMatrixWorld(true);
 
       // 5. Update Moon's 27.3-day orbital trajectory ring around Earth for current nodal plane
       if (moonOrbitLine) {
@@ -1489,7 +1583,7 @@
 
     function init3DRelayConstellation() {
       satOrbitGroup = new THREE.Group();
-      moonSystemGroup.add(satOrbitGroup);
+      scene.add(satOrbitGroup); // Translating with the Moon, never tidally rotating with it.
 
       satLinkGroup = new THREE.Group();
       moonSystemGroup.add(satLinkGroup);
@@ -1503,7 +1597,7 @@
           const t = new Date(refEpoch.getTime() + (s / steps) * sat.periodHours * 3600000);
           const pos = propagateRelaySatellite(sat, t);
           const visualR = 1.0 + ((pos.rKm / R_MOON) - 1.0) * 0.42;
-          orbitPts.push(latLonToVec3(pos.lat, pos.lon, visualR));
+          orbitPts.push(inertialSatelliteVector(pos, visualR / pos.rKm));
         }
         const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPts);
         const orbitMat = new THREE.LineBasicMaterial({
@@ -1524,7 +1618,7 @@
         );
         satObj.add(bus);
         satObj.add(wings);
-        moonSystemGroup.add(satObj);
+        satOrbitGroup.add(satObj);
         satMeshMap[sat.id] = satObj;
       });
     }
@@ -1532,14 +1626,16 @@
     function update3DRelaysAndLinks(sample) {
       if (!satMeshMap || !satLinkGroup || !moonSystemGroup) return;
 
-      // Update spacecraft positions in MOON_ME local space inside moonSystemGroup
+      // Spacecraft move in a fixed-orientation inertial plane around the translating Moon.
       (sample.allRelays || []).forEach(rel => {
         const mesh = satMeshMap[rel.id];
         if (!mesh) return;
         const visualR = 1.0 + ((rel.rKm / R_MOON) - 1.0) * 0.42;
-        const localPos = latLonToVec3(rel.lat, rel.lon, visualR);
-        mesh.position.copy(localPos);
-        mesh.lookAt(moonSystemGroup.position);
+        const orbitalPos = inertialSatelliteVector({
+          xKm: rel.inertialXKm, yKm: rel.inertialYKm, zKm: rel.inertialZKm
+        }, visualR / rel.rKm);
+        mesh.position.copy(orbitalPos);
+        mesh.lookAt(new THREE.Vector3(0, 0, 0));
         mesh.visible = state.showRelayOrbits;
       });
 
@@ -1554,7 +1650,9 @@
         (sample.visibleRelays || []).forEach(rel => {
           const mesh = satMeshMap[rel.id];
           if (!mesh) return;
-          const beamGeo = new THREE.BufferGeometry().setFromPoints([siteLocalOrigin, mesh.position.clone()]);
+          const satelliteWorld = mesh.getWorldPosition(new THREE.Vector3());
+          const satelliteLocal = moonSystemGroup.worldToLocal(satelliteWorld);
+          const beamGeo = new THREE.BufferGeometry().setFromPoints([siteLocalOrigin, satelliteLocal]);
           const beamMat = new THREE.LineBasicMaterial({
             color: 0xc084fc,
             transparent: true,
@@ -1564,17 +1662,24 @@
         });
       }
 
-      // Update Direct-to-Earth (DTE) line-of-sight beam in world space
-      if (earthDteLine) {
-        earthDteLine.visible = state.showDteBeam && sample.earthLit;
-        if (earthDteLine.visible) {
-          moonSystemGroup.updateMatrixWorld(true);
-          const siteWorldPos = siteLocalOrigin.clone().applyMatrix4(moonSystemGroup.matrixWorld);
-          const earthSurfacePos = siteWorldPos.clone().normalize().multiplyScalar(EARTH_RADIUS_3D);
-          earthDteLine.geometry.dispose();
-          earthDteLine.geometry = new THREE.BufferGeometry().setFromPoints([siteWorldPos, earthSurfacePos]);
+      // Direct straight segments terminate exactly at real, Earth-fixed DSN markers.
+      // Earth and markers are oriented together by the same geocentric quaternion.
+      if (earthDteLine) earthDteLine.visible = false;
+      moonSystemGroup.updateMatrixWorld(true);
+      earthMesh.updateMatrixWorld(true);
+      const siteWorld = siteLocalOrigin.clone().applyMatrix4(moonSystemGroup.matrixWorld);
+      sample.dsn.stations.forEach(station => {
+        const marker = dsnMarkers[station.id];
+        const beam = dsnBeams[station.id];
+        const surface = latLonToVec3(station.lat, station.lon, EARTH_RADIUS_3D)
+          .applyMatrix4(earthMesh.matrixWorld);
+        marker.visible = state.showDteBeam;
+        beam.visible = state.showDteBeam && station.visible;
+        if (beam.visible) {
+          beam.geometry.dispose();
+          beam.geometry = new THREE.BufferGeometry().setFromPoints([siteWorld, surface]);
         }
-      }
+      });
     }
 
     function toggleSatelliteOrbits() {
@@ -1588,7 +1693,7 @@
 
     function toggleDteBeam() {
       state.showDteBeam = !state.showDteBeam;
-      document.getElementById("dte-beam-label").textContent = state.showDteBeam ? "Earth Link: ON" : "Earth Link: OFF";
+      document.getElementById("dte-beam-label").textContent = state.showDteBeam ? "DSN Links: ON" : "DSN Links: OFF";
       const cur = getCurrentSample();
       if (cur) update3DRelaysAndLinks(cur.sample);
     }
@@ -2067,7 +2172,9 @@
           const sunNow = getAzEl(pin.lat, pin.lon, ephNow.sunLat, ephNow.sunLon);
           const earthNow = getAzEl(pin.lat, pin.lon, ephNow.earthLat, ephNow.earthLon);
           const sunLitNow = sunNow.el > horizonAtAz(stats.profile, sunNow.az);
-          const earthLitNow = earthNow.el > horizonAtAz(stats.profile, earthNow.az);
+          const earthLitNow = getDsnVisibility(
+            earthNow.el > horizonAtAz(stats.profile, earthNow.az), simDate
+          ).visible.length > 0;
           const relaysNow = getRelayVisibilityAtSite(pin.lat, pin.lon, stats.profile, simDate).visible;
 
           return `
@@ -2248,14 +2355,21 @@
       // 4. Live Earth DTE Card
       const earthCard = document.getElementById("earth-card");
       const earthStatus = document.getElementById("earth-status");
-      earthStatus.textContent = sample.earthLit ? "LINE OF SIGHT" : "BLOCKED";
+      earthStatus.textContent = sample.earthLit ? `${sample.dsn.visible.length}/3 STATIONS IN SIGHT` : "NO DSN LINK";
       earthStatus.className = `font-bold text-sm mt-0.5 ${sample.earthLit ? "text-sky-300" : "text-rose-400"}`;
       earthCard.className = sample.earthLit
         ? "rounded-xl p-2 border border-sky-400/30 bg-sky-500/10 transition-colors"
         : "rounded-xl p-2 border border-rose-500/30 bg-rose-500/10 transition-colors";
       document.getElementById("earth-lib-live").textContent = `Lib ${sample.eph.earthLat >= 0 ? "+" : ""}${sample.eph.earthLat.toFixed(1)}°`;
-      document.getElementById("earth-detail").textContent = `El ${sample.earth.el >= 0 ? "+" : ""}${sample.earth.el.toFixed(1)}° (Rim ${sample.earthHor.toFixed(1)}°)`;
+      document.getElementById("earth-detail").textContent = `Moon→Earth El ${sample.earth.el >= 0 ? "+" : ""}${sample.earth.el.toFixed(1)}° (Rim ${sample.earthHor.toFixed(1)}°)`;
       document.getElementById("earth-next").textContent = getNextTransitionInCache(cache, idx, "earthLit");
+      document.getElementById("dsn-station-list").innerHTML = sample.dsn.stations.map(station => `
+        <div class="flex justify-between gap-2 text-[10px] mono" title="${station.country}: station elevation ${station.elevationDeg.toFixed(1)}°">
+          <span style="color:${station.color}">● ${station.name}</span>
+          <span class="${station.visible ? 'text-emerald-300' : 'text-rose-300'}">
+            ${station.visible ? 'CONNECTED' : 'NO LINK'} · ${station.elevationDeg >= 0 ? '+' : ''}${station.elevationDeg.toFixed(1)}°
+          </span>
+        </div>`).join("");
 
       // 5. Live Relay Satellite Constellation Card
       const visRelays = sample.visibleRelays || [];
