@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LUNA-VIEW — 3D/2D Lunar Lighting, Comms &amp; Site Comparison Explorer</title>
+  <title>LUNA-VIEW — 3D/2D Earth-Moon Orbital, Lighting, Comms &amp; Site Explorer</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Three.js r128 & OrbitControls -->
@@ -113,21 +113,43 @@
   <div id="stage-3d" class="fixed inset-0 w-full h-full cursor-grab active:cursor-grabbing"></div>
   <canvas id="stage-2d" class="fixed inset-0 w-full h-full hidden cursor-crosshair"></canvas>
 
-  <!-- Subtle Bottom Stage Legend & Satellite Orbit Toggle Pill -->
-  <div class="fixed bottom-3 left-1/2 -translate-x-1/2 z-10 hidden lg:flex items-center gap-3 glass rounded-full px-3.5 py-1 text-[11px] text-slate-300">
-    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-white ring-2 ring-amber-400"></span>Cursor</span>
+  <!-- Subtle Bottom Stage Legend, Camera Focus & Orbit Toggles Pill -->
+  <div class="fixed bottom-3 left-1/2 -translate-x-1/2 z-10 hidden lg:flex items-center gap-2.5 glass rounded-full px-3.5 py-1 text-[11px] text-slate-300">
+    <!-- Camera Focus Switcher -->
+    <div class="flex items-center gap-1 bg-slate-900/90 rounded-full p-0.5 border border-slate-800" title="Switch 3D Camera Target">
+      <button type="button" id="focus-moon-btn" onclick="setCameraFocus('moon')"
+        class="px-2 py-0.5 rounded-full font-semibold bg-sky-500 text-slate-950 transition">
+        Focus: Moon
+      </button>
+      <button type="button" id="focus-system-btn" onclick="setCameraFocus('system')"
+        class="px-2 py-0.5 rounded-full font-medium text-slate-300 hover:text-white transition">
+        Earth-Moon
+      </button>
+    </div>
+
     <span class="text-slate-600 pointer-events-none">•</span>
+    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-white ring-2 ring-amber-400"></span>Cursor</span>
     <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pin A</span>
     <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-sky-400"></span>Pin B</span>
     <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Pin C</span>
     <span class="text-slate-600 pointer-events-none">•</span>
+
+    <!-- Relay Orbits Toggle -->
     <button id="toggle-orbits-btn" type="button" onclick="toggleSatelliteOrbits()"
       class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/40 font-medium transition">
       <span class="w-2 h-2 rounded-full bg-violet-400"></span>
       <span id="orbits-btn-label">Relay Sats: ON</span>
     </button>
+
+    <!-- Earth-Moon Orbit & DTE Vector Toggle -->
+    <button id="toggle-dte-beam-btn" type="button" onclick="toggleDteBeam()"
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 font-medium transition">
+      <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+      <span id="dte-beam-label">Earth Link: ON</span>
+    </button>
+
     <span class="text-slate-600 pointer-events-none">•</span>
-    <span id="stage-hint-text" class="text-slate-400 pointer-events-none">Drag to orbit • Scroll to zoom • Click Moon to inspect</span>
+    <span id="lunar-phase-pill" class="mono text-amber-300 font-medium pointer-events-none">Waxing Crescent</span>
   </div>
 
   <!-- ======================================================================= -->
@@ -151,7 +173,7 @@
     <!-- 3-Mode Map View Switcher -->
     <nav class="flex bg-slate-900/90 rounded-full p-0.5 border border-slate-800 shrink-0" aria-label="Lunar View Mode">
       <button type="button" data-view="globe" class="view-btn px-2.5 py-1 rounded-full font-medium transition bg-sky-500 text-slate-950">
-        3D Globe
+        3D Orbit
       </button>
       <button type="button" data-view="pole" class="view-btn px-2.5 py-1 rounded-full font-medium transition text-slate-300 hover:text-white">
         2D South Pole
@@ -160,6 +182,12 @@
         2D Global
       </button>
     </nav>
+
+    <!-- Compact Camera Focus Toggle for Tablet/Mobile -->
+    <button type="button" id="mobile-focus-btn" onclick="toggleCameraFocus()" title="Switch 3D Camera Focus (Moon vs Earth-Moon System)"
+      class="lg:hidden px-2 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-sky-300 border border-slate-700/80 font-medium shrink-0">
+      Moon Cam
+    </button>
 
     <!-- Start Date & Day Stepping -->
     <div class="flex items-center gap-1 pl-2 border-l border-slate-700/70 shrink-0">
@@ -189,7 +217,7 @@
     </div>
 
     <!-- Help & Methodology Modal Button ('?') -->
-    <button id="help-btn" type="button" title="Data Sources, Relay Satellites & Verification"
+    <button id="help-btn" type="button" title="Data Sources, Earth-Moon Orbital Mechanics & Relay Satellites"
       class="ml-0.5 w-6 h-6 rounded-full bg-slate-800 hover:bg-sky-500 hover:text-slate-950 border border-slate-600/70 font-bold text-slate-200 flex items-center justify-center transition shrink-0">
       ?
     </button>
@@ -409,7 +437,7 @@
   <div id="help-modal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="glass rounded-2xl max-w-xl w-full max-h-[85vh] overflow-y-auto p-5 text-xs leading-relaxed text-slate-200 border border-slate-700">
       <div class="flex items-center justify-between pb-3 border-b border-slate-700/80">
-        <h3 class="text-base font-bold text-white">Data Sources, Relay Satellites &amp; Verification</h3>
+        <h3 class="text-base font-bold text-white">Earth-Moon Orbital Mechanics, Data &amp; Relay Satellites</h3>
         <button id="close-help" type="button"
           class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition">
           Close
@@ -419,22 +447,21 @@
       <div class="space-y-3.5 mt-3.5">
         <div>
           <h4 class="font-semibold text-sky-300 uppercase tracking-wider text-[11px]">
-            1. NASA Lunar Datasets &amp; Site Coordinates
+            1. 3D Earth-Moon Orbital Frame &amp; Tidal Locking
           </h4>
           <p class="text-slate-300 mt-1">
-            • <strong>Surface Imagery:</strong> NASA’s Scientific Visualization Studio (SVS CGI Moon Kit, <span class="mono text-slate-100">lroc_color_2k.jpg</span>), built from Lunar Reconnaissance Orbiter Camera (LROC) Wide Angle Camera mosaics and LOLA laser altimetry.<br/>
-            • <strong>Candidate Sites:</strong> IAU Mean Earth / Polar Axis (<span class="mono text-slate-100">MOON_ME</span>) coordinates from NASA Artemis III candidate region releases, LOLA South Pole site catalogs (Mazarico et al. / NASA GSFC PGDA), and Apollo/CLPS/Chandrayaan/Chang’e mission reports.
+            • <strong>Geocentric Ecliptic Frame:</strong> Earth sits at the scene origin with its <span class="mono text-slate-100">23.44°</span> axial obliquity and UTC sidereal rotation, while the Sun illuminates the Earth-Moon system along the true ecliptic solar vector.<br/>
+            • <strong>Moon Orbit &amp; Tidal Locking:</strong> The Moon revolves around Earth along its <span class="mono text-slate-100">5.145°</span> inclined orbit (<span class="mono text-slate-100">27.32d</span> sidereal / <span class="mono text-slate-100">29.53d</span> synodic phase cycle). Its <span class="mono text-slate-100">MOON_ME</span> prime meridian (<span class="mono text-slate-100">0° Lon</span>) remains tidally locked toward Earth while exhibiting real optical libration (<span class="mono text-slate-100">±7.6°</span> longitude, <span class="mono text-slate-100">±6.68°</span> latitude), producing authentic lunar phases as you scrub or press Play.
           </p>
         </div>
 
         <div>
           <h4 class="font-semibold text-amber-300 uppercase tracking-wider text-[11px]">
-            2. Ephemeris, Airless Horizon &amp; Recommendations Engine
+            2. NASA Lunar Datasets &amp; Airless Horizon Model
           </h4>
           <p class="text-slate-300 mt-1">
-            • <strong>Selenocentric Ephemeris:</strong> Computes sub-solar and sub-Earth coordinates for any UTC date (<span class="mono">2020–2035</span>) using the <span class="mono">29.53059d</span> synodic period, <span class="mono">1.54°</span> axial obliquity, and optical libration cycles (<span class="mono">±7.6°</span> longitude, <span class="mono">±6.68°</span> latitude).<br/>
-            • <strong>Airless Line-of-Sight:</strong> With zero atmosphere, refraction is zero. Visibility requires body elevation to exceed the 72-sector (<span class="mono">5°</span>) terrain horizon angle <span class="mono">H(Az)</span> accounting for lunar curvature (<span class="mono">R = 1737.4 km</span>).<br/>
-            • <strong>South Pole Recommendations:</strong> Evaluates 10 South Pole candidate locations across your selected timeframe and ranks them by weighted solar illumination (<span class="mono">55%</span>) and communications availability (<span class="mono">45%</span>).
+            • <strong>Surface Imagery &amp; Sites:</strong> NASA SVS LRO/LOLA <span class="mono text-slate-100">lroc_color_2k.jpg</span> and IAU <span class="mono text-slate-100">MOON_ME</span> coordinates for NASA Artemis III candidate sites, LOLA South Pole catalogs, and Apollo/CLPS/Chandrayaan/Chang’e missions.<br/>
+            • <strong>Airless Line-of-Sight:</strong> With zero atmosphere, visibility requires solar, Earth, or satellite elevation to exceed the 72-sector (<span class="mono">5°</span>) terrain horizon angle <span class="mono">H(Az)</span> accounting for lunar curvature (<span class="mono">R = 1737.4 km</span>).
           </p>
         </div>
 
@@ -443,8 +470,7 @@
             3. NASA LunaNet / LCRNS Relay Satellites &amp; Frozen Polar Orbits
           </h4>
           <p class="text-slate-300 mt-1">
-            • <strong>Elliptical Lunar Frozen Orbits (ELFO):</strong> Because Earth’s third-body gravity perturbs high-inclination circular lunar orbits, NASA’s Lunar Communications Relay and Navigation Systems (LCRNS) and LunaNet Interoperability Specification (LNIS v5; NASA NTRS <span class="mono text-slate-100">20250003321</span> &amp; <span class="mono text-slate-100">20250006883</span>; Folta &amp; Quinn, 2006) use Elliptical Lunar Frozen Orbits satisfying <span class="mono text-slate-100">e = √(1 − (5/3)cos²i)</span> with argument of perilune <span class="mono text-slate-100">ω = 90°</span>.<br/>
-            • <strong>Persistent South Pole Dwell Time:</strong> Setting <span class="mono text-slate-100">ω = 90°</span> places perilune over the North Pole and high-altitude apolune (<span class="mono text-slate-100">~14,500–16,400 km</span>) above the Lunar South Pole, allowing each orbiter to linger overhead for &gt;70% of its orbit. Three phased LCRNS ELFO spacecraft (<span class="mono text-slate-100">a = 10,935 km, i = 54.5°, e = 0.661, T = 27.7h</span>) plus ESA/NASA’s <span class="mono text-slate-100">Lunar Pathfinder</span> (<span class="mono text-slate-100">a = 5,740 km, i = 57.8°, e = 0.610, T = 12.0h</span>) provide S/Ka-band relay and PNT coverage above a <span class="mono text-slate-100">5.0°</span> local elevation mask—maintaining communications even inside deep craters like Shackleton Floor where Direct-to-Earth is blocked.
+            • <strong>Elliptical Lunar Frozen Orbits (ELFO):</strong> Three phased LCRNS ELFO spacecraft (<span class="mono text-slate-100">a = 10,935 km, i = 54.5°, e = 0.661, ω = 90°, T = 27.7h</span>) plus ESA/NASA’s <span class="mono text-slate-100">Lunar Pathfinder</span> (<span class="mono text-slate-100">a = 5,740 km, i = 57.8°, e = 0.610, T = 12.0h</span>) orbit the Moon in its moving frame, lingering over the South Pole above a <span class="mono text-slate-100">5.0°</span> elevation mask.
           </p>
         </div>
 
@@ -453,8 +479,7 @@
             4. How to Independently Verify Results
           </h4>
           <p class="text-slate-300 mt-1">
-            • <strong>NASA JPL Horizons (<span class="mono text-sky-300">ssd.jpl.nasa.gov/horizons</span>):</strong> Set Target to <span class="mono">Sun [10]</span> or <span class="mono">Earth [399]</span>, Observer to <span class="mono">@301</span> (Moon) at your pin’s Lat/Lon, and request Table #4 (Apparent Azimuth &amp; Elevation).<br/>
-            • <strong>NASA LRO QuickMap (<span class="mono text-sky-300">quickmap.lroc.asu.edu</span>):</strong> Enter the same coordinates and open the LOLA Terrain Horizon / Illumination tool to inspect 5 m/pixel laser altimetry shadows.
+            • <strong>NASA JPL Horizons (<span class="mono text-sky-300">ssd.jpl.nasa.gov/horizons</span>):</strong> Set Target to <span class="mono">Sun [10]</span> or <span class="mono">Earth [399]</span>, Observer to <span class="mono">@301</span> (Moon) at your pin’s Lat/Lon, and request Table #4 (Apparent Azimuth &amp; Elevation).
           </p>
         </div>
       </div>
@@ -469,7 +494,7 @@
   </div>
 
   <!-- ======================================================================= -->
-  <!-- 6. APPLICATION LOGIC: EPHEMERIS, RELAY SATELLITES, COMPARISON & 3D/2D   -->
+  <!-- 6. APPLICATION LOGIC: EPHEMERIS, EARTH-MOON ORBIT, RELAYS & 3D/2D STAGE -->
   <!-- ======================================================================= -->
   <script>
     "use strict";
@@ -560,8 +585,18 @@
     const RAD = 180 / Math.PI;
     const R_MOON = 1737.4;
 
+    // 3D Scene Scale Constants (Geocentric Ecliptic Frame)
+    // Moon radius = 1.0 unit; Earth radius = 2.6 units; Mean Lunar Orbit = 18.5 units
+    const EARTH_RADIUS_3D = 2.55;
+    const MOON_ORBIT_SMA_3D = 18.5;
+    const MOON_ORBIT_ECC = 0.0549;
+    const MOON_ORBIT_INC_RAD = 5.145 * DEG;
+    const MOON_AXIAL_OBLIQUITY_RAD = 1.54 * DEG;
+    const SUN_DISTANCE_3D = 95.0;
+
     const state = {
       view: "globe",              // 'globe' | 'pole' | 'global'
+      cameraFocus: "moon",        // 'moon' | 'system'
       leftTab: "recommend",       // 'recommend' | 'sites' | 'compare'
       lat: SITES[0].lat,
       lon: SITES[0].lon,
@@ -572,6 +607,7 @@
       isPlaying: false,
       playSpeed: 1,               // 1x or 3x
       showRelayOrbits: true,
+      showDteBeam: true,
       lastFrameMs: performance.now(),
       moonImageData: null,
       moonImg: null,
@@ -595,9 +631,10 @@
 
       const synodicPeriod = 29.530588853;
       const newMoonRef = Date.UTC(2000, 0, 6, 18, 14, 0);
-      const phase = (((date.getTime() - newMoonRef) / 86400000) / synodicPeriod) * Math.PI * 2;
+      const phaseAngle = (((date.getTime() - newMoonRef) / 86400000) / synodicPeriod) * Math.PI * 2;
+      const phaseFrac = (((phaseAngle / (Math.PI * 2)) % 1) + 1) % 1;
 
-      let sunLon = ((Math.PI - phase) * RAD) % 360;
+      let sunLon = ((Math.PI - phaseAngle) * RAD) % 360;
       if (sunLon > 180) sunLon -= 360;
       if (sunLon < -180) sunLon += 360;
 
@@ -607,10 +644,42 @@
       // Optical libration of Earth around (0° lat, 0° lon)
       const anomalistic = 2 * Math.PI * (d / 27.55455);
       const draconic = 2 * Math.PI * (d / 27.21222);
+      const sidereal = 2 * Math.PI * (d / 27.321661);
+      const ascendingNode = 2 * Math.PI * (-d / 6793.5); // 18.6-year nodal regression
+
       const earthLon = 7.6 * Math.sin(anomalistic);
       const earthLat = 6.68 * Math.sin(draconic);
 
-      return { sunLat, sunLon, earthLat, earthLon };
+      // Geocentric Ecliptic Lon of Sun & Moon (for 3D Earth-Moon-Sun orbital placement)
+      const sunEclipticLon = (280.46 + 0.9856474 * d) * DEG;
+      const moonMeanAnomaly = anomalistic;
+      const moonTrueLon = sunEclipticLon + phaseAngle + 0.055 * Math.sin(moonMeanAnomaly);
+
+      return {
+        d,
+        phaseAngle,
+        phaseFrac,
+        sunLat,
+        sunLon,
+        earthLat,
+        earthLon,
+        sunEclipticLon,
+        moonTrueLon,
+        moonMeanAnomaly,
+        ascendingNode,
+        sidereal
+      };
+    }
+
+    function getLunarPhaseName(phaseFrac) {
+      if (phaseFrac < 0.03 || phaseFrac >= 0.97) return "New Moon";
+      if (phaseFrac < 0.22) return "Waxing Crescent";
+      if (phaseFrac < 0.28) return "First Quarter";
+      if (phaseFrac < 0.47) return "Waxing Gibbous";
+      if (phaseFrac < 0.53) return "Full Moon";
+      if (phaseFrac < 0.72) return "Waning Gibbous";
+      if (phaseFrac < 0.78) return "Last Quarter";
+      return "Waning Crescent";
     }
 
     /**
@@ -872,7 +941,6 @@
       const avgSunEl = sumSunEl / steps;
       const avgFlux = Math.round(sumFlux / steps);
 
-      // Composite score blends solar availability with Direct-to-Earth and Relay comms capability
       const effectiveCommsPct = Math.max(earthPct, earthPct * 0.65 + relayPct * 0.35);
       const score = Math.round(sunPct * 0.55 + effectiveCommsPct * 0.45);
 
@@ -955,18 +1023,30 @@
     }
 
     // =========================================================================
-    // 5. 3D GLOBE ENGINE (THREE.JS + NASA LRO TEXTURE + RELAY SATELLITES)
+    // 5. 3D EARTH-MOON-SUN ORBITAL ENGINE & TIDAL LOCKING (THREE.JS)
     // =========================================================================
-    let scene, camera, renderer, controls, moonMesh, pinGroup, sunLight;
+    let scene, camera, renderer, controls, sunLight;
+    let earthGroup, earthMesh, earthCloudsMesh;
+    let sunGroup, sunCoreMesh, sunCoronaMesh;
+    let moonSystemGroup, moonMesh, pinGroup;
     let satOrbitGroup, satMeshMap = {}, satLinkGroup;
+    let moonOrbitLine, earthDteLine;
+    let prevMoonWorldPos = null;
 
+    // Converts selenocentric (lat, lon, r) in MOON_ME frame to local Three.js Vector3
+    // Matches Three.js SphereGeometry UV mapping:
+    //   lat=0, lon=0°   -> (+r, 0, 0) [Prime Meridian / Near Side facing Earth]
+    //   lat=0, lon=+90° -> (0, 0, -r) [East limb]
+    //   lat=0, lon=-90° -> (0, 0, +r) [West limb]
+    //   lat=+90°N       -> (0, +r, 0) [North Pole]
+    //   lat=-90°S       -> (0, -r, 0) [South Pole]
     function latLonToVec3(lat, lon, radius = 1) {
-      const phi = (90 - lat) * DEG;
-      const theta = (lon + 180) * DEG;
+      const theta = (90 - lat) * DEG;
+      const phi = (lon + 180) * DEG;
       return new THREE.Vector3(
-        -radius * Math.sin(phi) * Math.cos(theta),
-        radius * Math.cos(phi),
-        radius * Math.sin(phi) * Math.sin(theta)
+        -radius * Math.sin(theta) * Math.cos(phi),
+        radius * Math.cos(theta),
+        radius * Math.sin(theta) * Math.sin(phi)
       );
     }
 
@@ -996,12 +1076,118 @@
       return off;
     }
 
+    /**
+     * Generates a rich procedural Earth texture (oceans, continents, polar ice caps, and cloud wisps)
+     * so Earth renders immediately with zero external dependency failures.
+     */
+    function buildProceduralEarthCanvas() {
+      const w = 720;
+      const h = 360;
+      const off = document.createElement("canvas");
+      off.width = w;
+      off.height = h;
+      const ctx = off.getContext("2d");
+
+      // Deep ocean gradient
+      const oceanGrad = ctx.createLinearGradient(0, 0, 0, h);
+      oceanGrad.addColorStop(0, "#1e3a8a");
+      oceanGrad.addColorStop(0.5, "#0369a1");
+      oceanGrad.addColorStop(1, "#1e3a8a");
+      ctx.fillStyle = oceanGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Stylized continental landmasses (lon -180..180, lat 90..-90)
+      const continents = [
+        // North America
+        { lon: -102, lat: 42, rx: 32, ry: 20, col: "#2e6f40" },
+        { lon: -115, lat: 56, rx: 24, ry: 12, col: "#3b7a57" },
+        { lon: -88, lat: 22, rx: 10, ry: 12, col: "#3f7d3a" },
+        // South America
+        { lon: -58, lat: -15, rx: 16, ry: 26, col: "#2d6a4f" },
+        { lon: -66, lat: -36, rx: 9, ry: 18, col: "#4a7c59" },
+        // Greenland
+        { lon: -42, lat: 72, rx: 14, ry: 8, col: "#e2e8f0" },
+        // Europe
+        { lon: 14, lat: 50, rx: 22, ry: 12, col: "#3a7d44" },
+        { lon: 24, lat: 62, rx: 16, ry: 8, col: "#4a7c59" },
+        // Africa
+        { lon: 20, lat: 8, rx: 22, ry: 24, col: "#6b703c" },
+        { lon: 14, lat: 23, rx: 24, ry: 9, col: "#b59b5c" }, // Sahara
+        { lon: 24, lat: -18, rx: 13, ry: 16, col: "#4f772d" },
+        // Asia
+        { lon: 86, lat: 48, rx: 48, ry: 22, col: "#3a7d44" },
+        { lon: 105, lat: 30, rx: 26, ry: 14, col: "#2d6a4f" },
+        { lon: 78, lat: 20, rx: 10, ry: 11, col: "#4f772d" },
+        { lon: 56, lat: 32, rx: 18, ry: 10, col: "#a68a56" },
+        // Australia
+        { lon: 134, lat: -25, rx: 16, ry: 11, col: "#9c6644" },
+        // Antarctica
+        { lon: 0, lat: -83, rx: 180, ry: 11, col: "#f1f5f9" },
+        // Arctic cap
+        { lon: 0, lat: 85, rx: 180, ry: 7, col: "#f8fafc" }
+      ];
+
+      continents.forEach(c => {
+        const cx = ((c.lon + 180) / 360) * w;
+        const cy = ((90 - c.lat) / 180) * h;
+        const rx = (c.rx / 360) * w;
+        const ry = (c.ry / 180) * h;
+        ctx.fillStyle = c.col;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Subtle atmospheric cloud swirls
+      ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+      for (let i = 0; i < 48; i++) {
+        const cx = ((i * 73) % w);
+        const cy = 24 + ((i * 47) % (h - 48));
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 18 + (i % 24), 3.2, (i % 5) * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      return off;
+    }
+
+    /**
+     * Computes the Moon's 3D geocentric position in Three.js world space
+     * (Y-up ecliptic frame: +X = vernal equinox, -Z = +90° ecliptic lon).
+     */
+    function getMoonGeocentricPos3D(eph) {
+      const r = MOON_ORBIT_SMA_3D * (1 - MOON_ORBIT_ECC * Math.cos(eph.moonMeanAnomaly));
+      const u = eph.moonTrueLon - eph.ascendingNode;
+      const cosO = Math.cos(eph.ascendingNode);
+      const sinO = Math.sin(eph.ascendingNode);
+      const cosU = Math.cos(u);
+      const sinU = Math.sin(u);
+      const cosI = Math.cos(MOON_ORBIT_INC_RAD);
+      const sinI = Math.sin(MOON_ORBIT_INC_RAD);
+
+      const xEcl = r * (cosO * cosU - sinO * sinU * cosI);
+      const yEcl = r * (sinO * cosU + cosO * sinU * cosI);
+      const zEcl = r * (sinU * sinI);
+
+      // Map ecliptic (xEcl, yEcl, zEcl) -> Three.js (X, Y-up, Z)
+      return new THREE.Vector3(xEcl, zEcl, -yEcl);
+    }
+
+    /**
+     * Computes the Sun's 3D geocentric direction unit vector in Three.js world space.
+     */
+    function getSunDir3D(eph) {
+      return new THREE.Vector3(
+        Math.cos(eph.sunEclipticLon),
+        0,
+        -Math.sin(eph.sunEclipticLon)
+      ).normalize();
+    }
+
     function init3D() {
       const container = document.getElementById("stage-3d");
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 160);
-      // Start oriented toward the Lunar South Pole so both polar craters and ELFO relay orbits are visible
-      camera.position.set(0, -3.4, 3.8);
+      camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1011,21 +1197,23 @@
       if (typeof THREE.OrbitControls !== "undefined") {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.minDistance = 1.32;
-        controls.maxDistance = 16.0;
+        controls.minDistance = 1.35;
+        controls.maxDistance = 95.0;
       } else {
-        // Lightweight fallback orbit controller if OrbitControls CDN is unreachable
         let drag = false, lx = 0, ly = 0;
-        let radius = camera.position.length();
-        let theta = Math.atan2(camera.position.x, camera.position.z);
-        let phi = Math.acos(camera.position.y / radius);
-        const syncCam = () => {
-          camera.position.set(
-            radius * Math.sin(phi) * Math.sin(theta),
-            radius * Math.cos(phi),
-            radius * Math.sin(phi) * Math.cos(theta)
-          );
-          camera.lookAt(0, 0, 0);
+        let radius = 4.6;
+        let theta = 0.2;
+        let phi = 2.15;
+        controls = {
+          target: new THREE.Vector3(),
+          update: () => {
+            camera.position.set(
+              controls.target.x + radius * Math.sin(phi) * Math.sin(theta),
+              controls.target.y + radius * Math.cos(phi),
+              controls.target.z + radius * Math.sin(phi) * Math.cos(theta)
+            );
+            camera.lookAt(controls.target);
+          }
         };
         renderer.domElement.addEventListener("pointerdown", e => { drag = true; lx = e.clientX; ly = e.clientY; });
         window.addEventListener("pointermove", e => {
@@ -1033,26 +1221,115 @@
           theta -= (e.clientX - lx) * 0.006;
           phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - (e.clientY - ly) * 0.006));
           lx = e.clientX; ly = e.clientY;
-          syncCam();
         });
         window.addEventListener("pointerup", () => { drag = false; });
         renderer.domElement.addEventListener("wheel", e => {
           e.preventDefault();
-          radius = Math.max(1.32, Math.min(16, radius * (1 + e.deltaY * 0.001)));
-          syncCam();
+          radius = Math.max(1.35, Math.min(95, radius * (1 + e.deltaY * 0.001)));
         }, { passive: false });
       }
 
       // Starfield background
       const starGeo = new THREE.BufferGeometry();
-      const starVerts = new Float32Array(1800 * 3);
+      const starVerts = new Float32Array(2600 * 3);
       for (let i = 0; i < starVerts.length; i++) {
-        starVerts[i] = (Math.random() - 0.5) * 90;
+        starVerts[i] = (Math.random() - 0.5) * 260;
       }
       starGeo.setAttribute("position", new THREE.BufferAttribute(starVerts, 3));
-      scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x94a3b8, size: 0.07 })));
+      scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x94a3b8, size: 0.14 })));
 
-      // Moon sphere with immediate offline fallback texture
+      // =======================================================================
+      // A. CENTRAL EARTH AT GEOCENTRIC ORIGIN (0, 0, 0) WITH 23.44° OBLIQUITY
+      // =======================================================================
+      earthGroup = new THREE.Group();
+      earthGroup.rotation.z = 23.44 * DEG;
+      scene.add(earthGroup);
+
+      const earthCanvas = buildProceduralEarthCanvas();
+      const earthTex = new THREE.CanvasTexture(earthCanvas);
+      const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS_3D, 64, 48);
+      const earthMat = new THREE.MeshStandardMaterial({
+        map: earthTex,
+        roughness: 0.72,
+        metalness: 0.08
+      });
+      earthMesh = new THREE.Mesh(earthGeo, earthMat);
+      earthGroup.add(earthMesh);
+
+      // Subtle Atmospheric Rayleigh Scattering Rim Halo around Earth
+      const atmoGeo = new THREE.SphereGeometry(EARTH_RADIUS_3D * 1.038, 48, 36);
+      const atmoMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.16,
+        side: THREE.BackSide
+      });
+      earthCloudsMesh = new THREE.Mesh(atmoGeo, atmoMat);
+      earthGroup.add(earthCloudsMesh);
+
+      // Attempt to upgrade Earth texture with NASA Blue Marble if CORS/network allows
+      const earthImg = new Image();
+      earthImg.crossOrigin = "anonymous";
+      earthImg.onload = () => {
+        const liveTex = new THREE.Texture(earthImg);
+        liveTex.needsUpdate = true;
+        earthMat.map = liveTex;
+        earthMat.needsUpdate = true;
+      };
+      earthImg.src = "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg";
+
+      // =======================================================================
+      // B. DISTANT GLOWING SUN & DIRECTIONAL SOLAR ILLUMINATION
+      // =======================================================================
+      sunGroup = new THREE.Group();
+      scene.add(sunGroup);
+
+      sunCoreMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(3.4, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xfffbeb })
+      );
+      sunGroup.add(sunCoreMesh);
+
+      sunCoronaMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(5.2, 32, 32),
+        new THREE.MeshBasicMaterial({
+          color: 0xfbbf24,
+          transparent: true,
+          opacity: 0.25
+        })
+      );
+      sunGroup.add(sunCoronaMesh);
+
+      sunLight = new THREE.DirectionalLight(0xffffff, 2.35);
+      scene.add(sunLight);
+      scene.add(new THREE.AmbientLight(0x1e293b, 0.36));
+
+      // =======================================================================
+      // C. MOON ORBITAL TRAJECTORY RING AROUND EARTH
+      // =======================================================================
+      const orbitMat = new THREE.LineBasicMaterial({
+        color: 0x64748b,
+        transparent: true,
+        opacity: 0.38
+      });
+      moonOrbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMat);
+      scene.add(moonOrbitLine);
+
+      // Direct-to-Earth (DTE) Telemetry Line from Inspected Lunar Site to Earth
+      const dteMat = new THREE.LineBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.72
+      });
+      earthDteLine = new THREE.Line(new THREE.BufferGeometry(), dteMat);
+      scene.add(earthDteLine);
+
+      // =======================================================================
+      // D. ORBITING & TIDALLY-LOCKED MOON SYSTEM GROUP (MOON_ME LOCAL FRAME)
+      // =======================================================================
+      moonSystemGroup = new THREE.Group();
+      scene.add(moonSystemGroup);
+
       const fallbackCanvas = buildOfflineMoonCanvas();
       const fallbackTex = new THREE.CanvasTexture(fallbackCanvas);
       const geo = new THREE.SphereGeometry(1, 128, 96);
@@ -1065,24 +1342,29 @@
         bumpScale: 0.018
       });
       moonMesh = new THREE.Mesh(geo, mat);
-      scene.add(moonMesh);
+      moonSystemGroup.add(moonMesh);
 
       // Load Real NASA SVS LRO/LOLA Moon Map
       loadRealMoonTexture(mat);
 
-      // Directional Solar Light + Subtle Nightside Fill
-      sunLight = new THREE.DirectionalLight(0xffffff, 2.25);
-      scene.add(sunLight);
-      scene.add(new THREE.AmbientLight(0x1e293b, 0.42));
-
-      // Surface Pins Group
+      // Surface Pins Group (inside moonSystemGroup so pins ride with the Moon!)
       pinGroup = new THREE.Group();
-      scene.add(pinGroup);
+      moonSystemGroup.add(pinGroup);
 
-      // Relay Satellite Orbits, Spacecraft Meshes & Active Communication Link Beams
+      // Relay Satellite Orbits & Spacecraft (inside moonSystemGroup so they orbit the moving Moon!)
       init3DRelayConstellation();
 
-      // Raycast click anywhere on 3D Moon
+      // Set Initial Position & Orientation before positioning camera
+      const initEph = getEphemeris(state.startDate);
+      updateEarthMoonSun3D(initEph, state.startDate);
+      prevMoonWorldPos = moonSystemGroup.position.clone();
+
+      // Place initial camera close to the Moon's South Pole looking at moonSystemGroup
+      controls.target.copy(moonSystemGroup.position);
+      camera.position.copy(moonSystemGroup.position).add(new THREE.Vector3(0, -3.3, 3.8));
+      if (controls.update) controls.update();
+
+      // Raycast click anywhere on 3D Moon (converts world hit back into MOON_ME local space!)
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
       let downPos = { x: 0, y: 0 };
@@ -1098,9 +1380,10 @@
         raycaster.setFromCamera(pointer, camera);
         const hits = raycaster.intersectObject(moonMesh);
         if (hits.length > 0) {
-          const p = hits[0].point.clone().normalize();
-          const lat = Math.asin(Math.max(-1, Math.min(1, p.y))) * RAD;
-          const theta = Math.atan2(p.z, -p.x) * RAD;
+          // Convert world-space hit point into moonSystemGroup's local MOON_ME frame
+          const localPt = moonSystemGroup.worldToLocal(hits[0].point.clone()).normalize();
+          const lat = Math.asin(Math.max(-1, Math.min(1, localPt.y))) * RAD;
+          const theta = Math.atan2(localPt.z, -localPt.x) * RAD;
           let lon = theta - 180;
           if (lon < -180) lon += 360;
           if (lon > 180) lon -= 360;
@@ -1111,17 +1394,109 @@
       window.addEventListener("resize", onResize);
     }
 
+    /**
+     * Updates the 3D positions & orientations of Earth, Sun, and the tidally-locked Moon
+     * (including optical libration in longitude ±7.6° and latitude ±6.68°) for a given epoch.
+     * Uses an exact orthonormal basis transformation M_world * M_local^T so that:
+     *   1. The sub-Earth point (eph.earthLat, eph.earthLon) in MOON_ME points dead-center at Earth.
+     *   2. The 3D Sun direction matches (eph.sunLat, eph.sunLon) in MOON_ME identically.
+     */
+    function updateEarthMoonSun3D(eph, dateObj) {
+      if (!moonSystemGroup || !earthMesh || !sunGroup || !sunLight) return;
+
+      // 1. Position Moon along its 5.145° inclined elliptical orbit around Earth at (0,0,0)
+      const moonPos = getMoonGeocentricPos3D(eph);
+      moonSystemGroup.position.copy(moonPos);
+
+      // Keep Camera Target locked to Moon when in 'Moon' focus mode so the Moon stays centered
+      if (state.cameraFocus === "moon" && controls && prevMoonWorldPos) {
+        const delta = moonPos.clone().sub(prevMoonWorldPos);
+        camera.position.add(delta);
+        controls.target.copy(moonPos);
+      }
+      prevMoonWorldPos = moonPos.clone();
+
+      // 2. Exact Tidal Locking + Optical Libration Quaternion (M_world * M_local^T):
+      // Unit vector from Moon center to Earth center in world space
+      const e1World = moonPos.clone().negate().normalize();
+
+      // Lunar spin north pole in world space (tilted 1.54° from ecliptic +Y normal, precessing with ascending node)
+      const nodeLon = eph.ascendingNode + Math.PI;
+      const lunarNorthWorld = new THREE.Vector3(
+        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.sin(nodeLon),
+        Math.cos(MOON_AXIAL_OBLIQUITY_RAD),
+        Math.sin(MOON_AXIAL_OBLIQUITY_RAD) * Math.cos(nodeLon)
+      ).normalize();
+
+      // Orthonormal world basis [e1World, e2World, e3World]
+      const e3World = new THREE.Vector3().crossVectors(e1World, lunarNorthWorld).normalize();
+      const e2World = new THREE.Vector3().crossVectors(e3World, e1World).normalize();
+      const mWorld = new THREE.Matrix4().makeBasis(e1World, e2World, e3World);
+
+      // Corresponding orthonormal local MOON_ME basis [e1Local, e2Local, e3Local]
+      // In Three.js SphereGeometry, lat=0°, lon=0° (prime meridian) is (+1, 0, 0)
+      const e1Local = latLonToVec3(eph.earthLat, eph.earthLon, 1).normalize();
+      const northLocal = new THREE.Vector3(0, 1, 0);
+      const e3Local = new THREE.Vector3().crossVectors(e1Local, northLocal).normalize();
+      const e2Local = new THREE.Vector3().crossVectors(e3Local, e1Local).normalize();
+      const mLocal = new THREE.Matrix4().makeBasis(e1Local, e2Local, e3Local);
+
+      // R = M_world * M_local^T maps e1Local -> e1World (points 0° prime meridian directly at Earth!)
+      const mLocalTranspose = mLocal.clone().transpose();
+      const rotMatrix = new THREE.Matrix4().multiplyMatrices(mWorld, mLocalTranspose);
+      moonSystemGroup.quaternion.setFromRotationMatrix(rotMatrix);
+      moonSystemGroup.updateMatrixWorld(true);
+
+      // 3. Transform local sub-solar vector (eph.sunLat, eph.sunLon) into world space
+      // Ensures 100% agreement between 3D sunlit terminator, lunar phase, and telemetry calculations
+      const sunLocalDir = latLonToVec3(eph.sunLat, eph.sunLon, 1).normalize();
+      const sunFromMoonWorld = sunLocalDir.clone().applyQuaternion(moonSystemGroup.quaternion).normalize();
+      const sunWorldPos = moonPos.clone().addScaledVector(sunFromMoonWorld, SUN_DISTANCE_3D);
+
+      sunGroup.position.copy(sunWorldPos);
+      sunLight.position.copy(sunWorldPos);
+
+      // 4. Rotate Earth around its polar axis according to UTC time of day + seasonal solar longitude
+      const sunEclipticAngle = Math.atan2(-sunFromMoonWorld.z, sunFromMoonWorld.x);
+      const utcHours =
+        dateObj.getUTCHours() +
+        dateObj.getUTCMinutes() / 60 +
+        dateObj.getUTCSeconds() / 3600;
+      earthMesh.rotation.y = sunEclipticAngle + (utcHours / 24) * Math.PI * 2 + Math.PI;
+
+      // 5. Update Moon's 27.3-day orbital trajectory ring around Earth for current nodal plane
+      if (moonOrbitLine) {
+        const pts = [];
+        for (let s = 0; s <= 96; s++) {
+          const nu = (s / 96) * Math.PI * 2;
+          const r = MOON_ORBIT_SMA_3D * (1 - MOON_ORBIT_ECC * Math.cos(nu));
+          const u = nu + (eph.moonTrueLon - eph.moonMeanAnomaly) - eph.ascendingNode;
+          const cosO = Math.cos(eph.ascendingNode);
+          const sinO = Math.sin(eph.ascendingNode);
+          const cosU = Math.cos(u);
+          const sinU = Math.sin(u);
+          const cosI = Math.cos(MOON_ORBIT_INC_RAD);
+          const sinI = Math.sin(MOON_ORBIT_INC_RAD);
+          const xEcl = r * (cosO * cosU - sinO * sinU * cosI);
+          const yEcl = r * (sinO * cosU + cosO * sinU * cosI);
+          const zEcl = r * (sinU * sinI);
+          pts.push(new THREE.Vector3(xEcl, zEcl, -yEcl));
+        }
+        moonOrbitLine.geometry.dispose();
+        moonOrbitLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+      }
+    }
+
     function init3DRelayConstellation() {
       satOrbitGroup = new THREE.Group();
-      scene.add(satOrbitGroup);
+      moonSystemGroup.add(satOrbitGroup);
 
       satLinkGroup = new THREE.Group();
-      scene.add(satLinkGroup);
+      moonSystemGroup.add(satLinkGroup);
 
       const refEpoch = new Date("2026-11-14T12:00:00Z");
 
       RELAY_SATELLITES.forEach(sat => {
-        // Closed elliptical frozen orbit ring (scaled down visually by 0.42x so apolune sits gracefully around the Moon)
         const orbitPts = [];
         const steps = 96;
         for (let s = 0; s <= steps; s++) {
@@ -1138,7 +1513,6 @@
         });
         satOrbitGroup.add(new THREE.Line(orbitGeo, orbitMat));
 
-        // Spacecraft bus + solar panels
         const satObj = new THREE.Group();
         const bus = new THREE.Mesh(
           new THREE.BoxGeometry(0.055, 0.055, 0.055),
@@ -1150,22 +1524,22 @@
         );
         satObj.add(bus);
         satObj.add(wings);
-        scene.add(satObj);
+        moonSystemGroup.add(satObj);
         satMeshMap[sat.id] = satObj;
       });
     }
 
     function update3DRelaysAndLinks(sample) {
-      if (!satMeshMap || !satLinkGroup) return;
+      if (!satMeshMap || !satLinkGroup || !moonSystemGroup) return;
 
-      // Update spacecraft positions along their orbits
+      // Update spacecraft positions in MOON_ME local space inside moonSystemGroup
       (sample.allRelays || []).forEach(rel => {
         const mesh = satMeshMap[rel.id];
         if (!mesh) return;
         const visualR = 1.0 + ((rel.rKm / R_MOON) - 1.0) * 0.42;
-        const worldPos = latLonToVec3(rel.lat, rel.lon, visualR);
-        mesh.position.copy(worldPos);
-        mesh.lookAt(0, 0, 0);
+        const localPos = latLonToVec3(rel.lat, rel.lon, visualR);
+        mesh.position.copy(localPos);
+        mesh.lookAt(moonSystemGroup.position);
         mesh.visible = state.showRelayOrbits;
       });
 
@@ -1174,20 +1548,33 @@
         satLinkGroup.remove(satLinkGroup.children[0]);
       }
 
-      if (!state.showRelayOrbits) return;
+      const siteLocalOrigin = latLonToVec3(state.lat, state.lon, 1.015);
 
-      const siteOrigin = latLonToVec3(state.lat, state.lon, 1.015);
-      (sample.visibleRelays || []).forEach(rel => {
-        const mesh = satMeshMap[rel.id];
-        if (!mesh) return;
-        const beamGeo = new THREE.BufferGeometry().setFromPoints([siteOrigin, mesh.position.clone()]);
-        const beamMat = new THREE.LineBasicMaterial({
-          color: 0xc084fc,
-          transparent: true,
-          opacity: 0.9
+      if (state.showRelayOrbits) {
+        (sample.visibleRelays || []).forEach(rel => {
+          const mesh = satMeshMap[rel.id];
+          if (!mesh) return;
+          const beamGeo = new THREE.BufferGeometry().setFromPoints([siteLocalOrigin, mesh.position.clone()]);
+          const beamMat = new THREE.LineBasicMaterial({
+            color: 0xc084fc,
+            transparent: true,
+            opacity: 0.92
+          });
+          satLinkGroup.add(new THREE.Line(beamGeo, beamMat));
         });
-        satLinkGroup.add(new THREE.Line(beamGeo, beamMat));
-      });
+      }
+
+      // Update Direct-to-Earth (DTE) line-of-sight beam in world space
+      if (earthDteLine) {
+        earthDteLine.visible = state.showDteBeam && sample.earthLit;
+        if (earthDteLine.visible) {
+          moonSystemGroup.updateMatrixWorld(true);
+          const siteWorldPos = siteLocalOrigin.clone().applyMatrix4(moonSystemGroup.matrixWorld);
+          const earthSurfacePos = siteWorldPos.clone().normalize().multiplyScalar(EARTH_RADIUS_3D);
+          earthDteLine.geometry.dispose();
+          earthDteLine.geometry = new THREE.BufferGeometry().setFromPoints([siteWorldPos, earthSurfacePos]);
+        }
+      }
     }
 
     function toggleSatelliteOrbits() {
@@ -1197,6 +1584,44 @@
       const cur = getCurrentSample();
       if (cur) update3DRelaysAndLinks(cur.sample);
       render2D();
+    }
+
+    function toggleDteBeam() {
+      state.showDteBeam = !state.showDteBeam;
+      document.getElementById("dte-beam-label").textContent = state.showDteBeam ? "Earth Link: ON" : "Earth Link: OFF";
+      const cur = getCurrentSample();
+      if (cur) update3DRelaysAndLinks(cur.sample);
+    }
+
+    function setCameraFocus(mode) {
+      state.cameraFocus = mode;
+      const moonBtn = document.getElementById("focus-moon-btn");
+      const sysBtn = document.getElementById("focus-system-btn");
+      const mobBtn = document.getElementById("mobile-focus-btn");
+
+      if (mode === "moon") {
+        moonBtn.className = "px-2 py-0.5 rounded-full font-semibold bg-sky-500 text-slate-950 transition";
+        sysBtn.className = "px-2 py-0.5 rounded-full font-medium text-slate-300 hover:text-white transition";
+        if (mobBtn) mobBtn.textContent = "Moon Cam";
+        if (moonSystemGroup && controls) {
+          controls.target.copy(moonSystemGroup.position);
+          camera.position.copy(moonSystemGroup.position).add(new THREE.Vector3(0, -3.3, 3.8));
+          if (controls.update) controls.update();
+        }
+      } else {
+        sysBtn.className = "px-2 py-0.5 rounded-full font-semibold bg-sky-500 text-slate-950 transition";
+        moonBtn.className = "px-2 py-0.5 rounded-full font-medium text-slate-300 hover:text-white transition";
+        if (mobBtn) mobBtn.textContent = "System Cam";
+        if (controls) {
+          controls.target.set(0, 0, 0);
+          camera.position.set(0, 18.0, 32.0);
+          if (controls.update) controls.update();
+        }
+      }
+    }
+
+    function toggleCameraFocus() {
+      setCameraFocus(state.cameraFocus === "moon" ? "system" : "moon");
     }
 
     function loadRealMoonTexture(mat) {
@@ -1419,7 +1844,6 @@
         });
         plotPolar(state.lat, state.lon, "#ffffff", 6.5, null);
 
-        // Plot sub-satellite ground markers & active comm links in South Pole view
         if (state.showRelayOrbits && sample.allRelays) {
           const cursorPos = state.lat <= -65 ? polarXY(state.lat, state.lon) : null;
           sample.allRelays.forEach(rel => {
@@ -1702,20 +2126,16 @@
 
       for (let i = 0; i < n; i++) {
         const s = cache.samples[i];
-        // Track 1 (Top): Sunlight availability
         ctx.fillStyle = s.sunLit ? "#f59e0b" : "#1e293b";
         ctx.fillRect(i * segW, 0, Math.ceil(segW), trackH - 0.5);
 
-        // Track 2 (Middle): Direct-to-Earth DTE availability
         ctx.fillStyle = s.earthLit ? "#38bdf8" : "#3f1d2e";
         ctx.fillRect(i * segW, trackH + 0.25, Math.ceil(segW), trackH - 0.5);
 
-        // Track 3 (Bottom): Passing Relay Satellite coverage
         ctx.fillStyle = s.relayLit ? "#a78bfa" : "#1e1b4b";
         ctx.fillRect(i * segW, trackH * 2 + 0.5, Math.ceil(segW), trackH - 0.5);
       }
 
-      // Live playhead cursor
       const px = state.scrubFrac * W;
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(Math.max(0, Math.min(W - 2, px - 1)), 0, 2, H);
@@ -1730,7 +2150,6 @@
 
       const elToY = el => H * 0.72 - (el / 65) * (H * 0.65);
 
-      // 0° geometric horizon reference dashed line
       ctx.strokeStyle = "rgba(148,163,184,0.28)";
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
@@ -1739,7 +2158,6 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Terrain silhouette polygon
       ctx.fillStyle = "rgba(71, 85, 105, 0.55)";
       ctx.strokeStyle = "#94a3b8";
       ctx.lineWidth = 1.2;
@@ -1755,7 +2173,6 @@
       ctx.fill();
       ctx.stroke();
 
-      // Sun, Earth & Overhead Relay Satellite markers
       const drawBody = (az, el, color, r = 4.2) => {
         const x = (az / 360) * W;
         const y = Math.max(6, Math.min(H - 6, elToY(el)));
@@ -1780,7 +2197,6 @@
       state.activeWindowCache = analyzeTimeframe(state.lat, state.lon, state.startDate, state.durationDays, 120);
       const cache = state.activeWindowCache;
 
-      // Update Timeframe Averages & Availability Summary
       document.getElementById("avg-score-badge").textContent = `Score ${cache.score}/100`;
       document.getElementById("stat-sun-avg").textContent = `${cache.sunPct.toFixed(1)}% (${Math.round(cache.sunHours)}h)`;
       document.getElementById("stat-earth-avg").textContent = `${cache.earthPct.toFixed(1)}% (${Math.round(cache.earthHours)}h)`;
@@ -1798,20 +2214,26 @@
       if (!cur) return;
       const { sample, idx } = cur;
       const cache = state.activeWindowCache;
+      const simDate = new Date(sample.tMs);
 
-      // Update 3D Sun lighting direction & 3D Relay Satellites + Comms Links
-      if (sunLight) {
-        sunLight.position.copy(latLonToVec3(sample.eph.sunLat, sample.eph.sunLon, 10));
-      }
+      // 1. Update 3D Earth, Sun, Moon Orbital Position, Tidal Locking & Relay Links
+      updateEarthMoonSun3D(sample.eph, simDate);
       update3DRelaysAndLinks(sample);
 
-      // Header & Coordinates
+      // Update Lunar Phase Pill in Bottom Bar
+      const phasePill = document.getElementById("lunar-phase-pill");
+      if (phasePill) {
+        const illumPct = Math.round(((1 - Math.cos(sample.eph.phaseAngle)) / 2) * 100);
+        phasePill.textContent = `${getLunarPhaseName(sample.eph.phaseFrac)} (${illumPct}%)`;
+      }
+
+      // 2. Header & Coordinates
       document.getElementById("site-title").textContent = state.name;
       const ns = state.lat >= 0 ? `${state.lat.toFixed(2)}° N` : `${Math.abs(state.lat).toFixed(2)}° S`;
       const ew = state.lon >= 0 ? `${state.lon.toFixed(2)}° E` : `${Math.abs(state.lon).toFixed(2)}° W`;
       document.getElementById("site-subtitle").textContent = `${ns}, ${ew} · Elev ${cache.z0 >= 0 ? "+" : ""}${cache.z0.toFixed(1)} km`;
 
-      // Live Sun Card
+      // 3. Live Sun Card
       const sunCard = document.getElementById("sun-card");
       const sunStatus = document.getElementById("sun-status");
       sunStatus.textContent = sample.sunLit ? "ILLUMINATED" : "IN SHADOW";
@@ -1823,7 +2245,7 @@
       document.getElementById("sun-detail").textContent = `El ${sample.sun.el >= 0 ? "+" : ""}${sample.sun.el.toFixed(1)}° (Rim ${sample.sunHor.toFixed(1)}°)`;
       document.getElementById("sun-next").textContent = getNextTransitionInCache(cache, idx, "sunLit");
 
-      // Live Earth DTE Card
+      // 4. Live Earth DTE Card
       const earthCard = document.getElementById("earth-card");
       const earthStatus = document.getElementById("earth-status");
       earthStatus.textContent = sample.earthLit ? "LINE OF SIGHT" : "BLOCKED";
@@ -1835,7 +2257,7 @@
       document.getElementById("earth-detail").textContent = `El ${sample.earth.el >= 0 ? "+" : ""}${sample.earth.el.toFixed(1)}° (Rim ${sample.earthHor.toFixed(1)}°)`;
       document.getElementById("earth-next").textContent = getNextTransitionInCache(cache, idx, "earthLit");
 
-      // Live Relay Satellite Constellation Card
+      // 5. Live Relay Satellite Constellation Card
       const visRelays = sample.visibleRelays || [];
       const relayCard = document.getElementById("relay-card");
       document.getElementById("relay-count-live").textContent = `${visRelays.length}/4 Overhead`;
@@ -1858,8 +2280,7 @@
               : "Comms Blackout";
       document.getElementById("relay-detail").textContent = `Mask ≥5.0° El · Mode: ${linkMode}`;
 
-      // Simulated Timestamp Readout
-      const simDate = new Date(sample.tMs);
+      // 6. Simulated Timestamp Readout
       const iso = simDate.toISOString();
       document.getElementById("sim-utc-readout").textContent = `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
       document.getElementById("sim-offset-readout").textContent = `+${sample.offsetDays.toFixed(1)}d / ${state.durationDays.toFixed(0)}d`;
@@ -2020,10 +2441,6 @@
             });
             document.getElementById("stage-3d").classList.toggle("hidden", state.view !== "globe");
             canvas2D.classList.toggle("hidden", state.view === "globe");
-            document.getElementById("stage-hint-text").textContent =
-              state.view === "globe"
-                ? "Drag to orbit • Scroll to zoom • Click Moon to inspect"
-                : "Click anywhere on the map to evaluate local lighting & comms";
             render2D();
           };
         });
