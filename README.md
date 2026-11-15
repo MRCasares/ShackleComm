@@ -3,7 +3,7 @@
 **A visual lunar landing-site analysis and communication-planning tool**  
 **NASA Space Apps Challenge 2026 — [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/)**
 
-![Watch the demo](https://github.com/MRCasares/ShackleComm/blob/71b1f6fc054f1959f2584de050410d463185b850/assets/demo_video.gif)
+![Watch the demo](https://github.com/MRCasares/ShackleComm/blob/ad834960ba8e9f069108cf53e0e011edc3beb075/assets/demo_video.gif)
 
 ShackleComm is an interactive web application for exploring the lighting and communication conditions at candidate lunar landing sites, particularly near the Moon's south pole. It brings site selection, time-dependent Sun and Earth visibility, and illustrative lunar relay coverage into a single, accessible interface.
 
