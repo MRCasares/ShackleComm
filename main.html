@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LUNA-VIEW — 3D/2D Earth-Moon Orbital, Lighting, Comms &amp; Site Explorer</title>
+  <title>ShackleComm — Lunar Communications &amp; Mission Survey</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Three.js r128 & OrbitControls -->
@@ -302,7 +302,7 @@
       .bay-index span:last-child { display: none; }
     }
 
-    /* LUNA-VIEW / human-scale mineral UI refinements */
+    /* ShackleComm / human-scale mineral UI refinements */
     :root { --radius-soft: 8px; --radius-card: 10px; }
     button, input, select, .instrument-panel, .survey-bay, .telemetry-cell,
     .timeline-panel, .info-fold, .site-row, .data-square, .satellite-label { border-radius: var(--radius-soft); }
@@ -420,6 +420,40 @@
       .selection-pin-btn {padding:9px 6px;font-size:11px;}
       .active-site-tag {max-width:150px; font-size:10px;}
     }
+
+    /* SHACKLECOMM READABILITY — larger controls without losing instrument character */
+    .brand-wordmark { font: 700 18px/1.1 'Roboto', Arial, sans-serif; letter-spacing: .015em; }
+    .command-strip { height: 62px; min-height: 62px; }
+    .command-strip > * { min-height: 61px; }
+    .command-strip button { font-size: 13.5px; font-weight: 600; min-height: 37px; }
+    .command-strip .view-btn { font-size: 14px; padding: 8px 13px; }
+    .command-strip #date-input { font-size: 13px; padding: 7px 9px; min-height: 37px; }
+    .command-strip button[onclick^="stepStartDate"] { font-size: 14px; padding: 7px 11px; white-space: nowrap; }
+    #play-btn, #speed-btn, #mobile-focus-btn { font-size: 13.5px; padding: 8px 11px; }
+    #help-btn { min-width: 36px; min-height: 36px; }
+    .survey-bay { top: 62px; }
+    .survey-bay .left-tab { font-size: 12px; min-height: 37px; padding: 9px 3px; }
+    .survey-bay button, .selection-pin-btn, .status-rail button { font-size: 12px; }
+    .site-row-name { font-size: 13px; }
+    .site-row { min-height: 47px; }
+    .status-rail button { font-size: 12px; }
+    .dur-btn { font-size: 13px !important; min-height: 32px; min-width: 39px; padding: 7px 9px !important; }
+    .site-row-flags { display: inline-flex; align-items:center; justify-content:flex-end; gap: 7px; flex-shrink: 0; }
+    .viability-badge { display: inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; min-width: 64px; padding: 4px 7px; border: 1px solid #756443; border-radius: 7px; background: #30291e; color: var(--pigment-linen); white-space: nowrap; line-height: 1.1; }
+    .viability-badge > span { font-size: 10px; font-weight: 500; letter-spacing: .01em; }
+    .viability-badge > b { font-size: 14px; font-weight: 700; color: var(--ink-primary); }
+    .viability-badge small { font-size: 10px; font-weight: 400; color: var(--ink-muted); }
+    .site-row.is-selected .viability-badge { border-color: var(--pigment-solar); }
+    .site-row-simple .site-row-tag { max-width: 74px; font-size: 10px; }
+    .site-row-simple .site-row-name { min-width: 0; flex: 1; }
+    @media (max-width: 767px) {
+      .command-strip { height: 60px; min-height: 60px; padding-left: 48px; padding-right: 48px; }
+      .command-strip > * { min-height: 59px; }
+      .command-strip .view-btn { font-size: 13px; padding: 8px 10px; }
+      .command-strip button[onclick^="stepStartDate"] { font-size: 13px; }
+      .survey-bay { top: 60px; }
+      .sidebar-toggle { top: 11px; }
+    }
   </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden bg-[#12110f]">
@@ -432,7 +466,7 @@
 
   <!-- Low-profile bottom controls: comparison chips exist only for real user pins. -->
   <div class="status-rail z-20 flex items-center gap-0 text-[10px]" role="toolbar" aria-label="Simulation display controls">
-    <span class="rail-ident">LUNA <b>/</b> VIEW</span>
+    <span class="rail-ident">SHACKLE<b>/</b>COMM</span>
     <div class="flex items-center gap-1 surface-well square p-0.5 border rule" title="Switch 3D camera target">
       <button type="button" id="focus-moon-btn" onclick="setCameraFocus('moon')" class="px-2 py-0.5 square font-semibold fill-inverted ink-void transition">Moon view</button>
       <button type="button" id="focus-system-btn" onclick="setCameraFocus('system')" class="px-2 py-0.5 square font-medium ink-primary ui-hover-ink transition">Earth–Moon</button>
@@ -462,7 +496,7 @@
     <!-- Brand Title -->
     <div class="flex items-center gap-1.5 pr-2 border-r rule shrink-0">
       <span class="w-2 h-2 square fill-earth"></span>
-        <span class="brand-wordmark font-semibold tracking-wide ink-primary">LUNA–VIEW <small>LUNAR MISSION EXPLORER</small></span>
+        <span class="brand-wordmark font-semibold tracking-wide ink-primary">ShackleComm</span>
     </div>
 
     <!-- 3-Mode Map View Switcher -->
@@ -486,15 +520,15 @@
 
     <!-- Start Date & Day Stepping -->
     <div class="flex items-center gap-1 pl-2 border-l rule shrink-0">
-      <input id="date-input" type="date" min="2020-01-01" max="2035-12-31" aria-label="Window Start Date"
+      <input id="date-input" type="date" min="2020-01-01" max="2035-12-31" aria-label="Simulation start date"
         class="surface-well border rule square px-2 py-1 ink-primary mono text-[11px] focus:outline-none " />
       <button type="button" onclick="stepStartDate(-1)" title="Shift Window -1 Day"
         class="hidden sm:inline px-1.5 py-1 square surface-panel ui-hover ink-primary ui-hover-ink mono transition">
-        -1d
+        −1 day
       </button>
       <button type="button" onclick="stepStartDate(1)" title="Shift Window +1 Day"
         class="hidden sm:inline px-1.5 py-1 square surface-panel ui-hover ink-primary ui-hover-ink mono transition">
-        +1d
+        +1 day
       </button>
     </div>
 
@@ -533,7 +567,7 @@
       <button type="button" data-tab="compare" id="compare-tab-btn" class="left-tab py-1.5 px-1 square font-medium ink-primary ui-hover-ink transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> Pins (0)</button>
     </div>
     <div id="tab-recommend" class="flex flex-col gap-2 overflow-y-auto pr-0.5">
-      <div class="flex items-center justify-between text-[10px] ink-muted"><span>South pole · scored by conditions</span><span id="tex-badge" class="source-chip">Synthetic terrain</span></div>
+      <div class="flex items-center justify-between text-[10px] ink-muted"><span>South pole · ordered by viability</span><span id="tex-badge" class="source-chip">Synthetic terrain</span></div>
       <div id="recommend-list" class="flex flex-col gap-1.5"></div>
     </div>
     <div id="tab-sites" class="hidden flex-col gap-2 overflow-y-auto pr-0.5">
@@ -592,7 +626,7 @@
       <div class="timeline-legend"><span><i class="legend-dot solar"></i>Sun</span><span><i class="legend-dot earth"></i>Earth</span><span><i class="legend-dot relay"></i>Relay</span></div>
     </div>
     <details class="info-fold" id="coverage-details"><summary><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M8 15l4-5 3 2 4-6"/></svg> Time-window coverage</summary>
-      <div class="flex items-center justify-between gap-1 mt-2"><span class="info-description">Average availability over selected period</span><span id="avg-score-badge" class="source-chip ink-ok">Score —</span></div>
+      <div class="flex items-center justify-between gap-1 mt-2"><span class="info-description">Average availability over selected period</span><span id="avg-score-badge" class="source-chip ink-ok" title="Relative viability: 55% sunlight availability and 45% Earth connection availability">Viability —</span></div>
       <div class="grid grid-cols-2 gap-1.5 text-[11px] mt-2">
         <div class="data-square"><div class="data-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg> Sunlight</div><div id="stat-sun-avg" class="mono font-bold ink-solar mt-0.5">—</div></div>
         <div class="data-square"><div class="data-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg> Earth connection</div><div id="stat-earth-avg" class="mono font-bold ink-earth mt-0.5">—</div></div>
@@ -2454,13 +2488,17 @@
     const UI_ICON_SUN = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`;
     const UI_ICON_EARTH = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg>`;
     const UI_ICON_PIN = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
+    // Retain the exact existing 55% sunlight / 45% communication scoring.
+    // Cache calculated scores for the All sites selector within the same window rebuild.
+    let siteViabilityScores = new Map();
     function renderRecommendationsList() {
       const container = document.getElementById("recommend-list");
       const recs = computeSouthPoleRecommendations();
+      siteViabilityScores = new Map(recs.map(({site, stats}) => [site.id, stats.score]));
       container.innerHTML = recs.map(({site, stats}) => {
         const selected = Math.abs(state.lat - site.lat) < .05 && Math.abs(state.lon - site.lon) < .05;
         return `<button type="button" data-site="${site.id}" class="site-row ${selected ? 'is-selected' : ''}">
-          <div class="site-row-main"><span class="site-row-name">${site.name}</span>${selected ? '<span class="active-caption">SELECTED</span>' : ''}</div>
+          <div class="site-row-main"><span class="site-row-name">${site.name}</span><span class="site-row-flags">${selected ? '<span class="active-caption">SELECTED</span>' : ''}<span class="viability-badge" title="Estimated relative viability: sunlight 55%, Earth communications 45%"><span>Viability</span><b>${stats.score}<small>/100</small></b></span></span></div>
           <div class="site-meters">
             <span class="meter" title="Sunlight availability"><span class="ink-solar">${UI_ICON_SUN}</span><span class="meter-track"><i style="width:${Math.round(stats.sunPct)}%;background:var(--pigment-solar)"></i></span><b>${Math.round(stats.sunPct)}%</b></span>
             <span class="meter" title="Connection to Earth"><span class="ink-earth">${UI_ICON_EARTH}</span><span class="meter-track"><i style="width:${Math.round(stats.anyCommsPct)}%;background:var(--pigment-earth)"></i></span><b>${Math.round(stats.anyCommsPct)}%</b></span>
@@ -2487,7 +2525,17 @@
         const tag = document.createElement("span");
         tag.className = "site-row-tag";
         tag.textContent = active ? "SELECTED" : site.tag;
-        btn.append(name,tag);
+        if (!siteViabilityScores.has(site.id)) {
+          siteViabilityScores.set(site.id, analyzeTimeframe(site.lat, site.lon, state.startDate, state.durationDays, 72).score);
+        }
+        const viability = document.createElement("span");
+        viability.className = "viability-badge";
+        viability.title = "Estimated relative viability: sunlight 55%, Earth communications 45%";
+        viability.innerHTML = `<span>Viability</span><b>${siteViabilityScores.get(site.id)}<small>/100</small></b>`;
+        const annotations = document.createElement("span");
+        annotations.className = "site-row-flags";
+        annotations.append(tag, viability);
+        btn.append(name, annotations);
         btn.onclick = () => selectCoordinates(site.lat, site.lon, site.name);
         list.appendChild(btn);
       }
@@ -2648,7 +2696,7 @@
       state.activeWindowCache = analyzeTimeframe(state.lat, state.lon, state.startDate, state.durationDays, 120);
       const cache = state.activeWindowCache;
 
-      document.getElementById("avg-score-badge").textContent = `Score ${cache.score}/100`;
+      document.getElementById("avg-score-badge").textContent = `Viability ${cache.score}/100`;
       document.getElementById("stat-sun-avg").textContent = `${cache.sunPct.toFixed(1)}% (${Math.round(cache.sunHours)}h)`;
       document.getElementById("stat-earth-avg").textContent = `${cache.anyCommsPct.toFixed(1)}% (${Math.round(cache.anyCommsPct * cache.totalHours / 100)}h)`;
       document.getElementById("stat-relay-avg").textContent = `${cache.relayPct.toFixed(1)}% (${Math.round(cache.relayHours)}h)`;
@@ -3113,7 +3161,7 @@
         state.lastFrameMs = performance.now();
         requestAnimationFrame(animationLoop);
       } catch (err) {
-        console.error("LUNA-VIEW Initialization Error:", err);
+        console.error("ShackleComm Initialization Error:", err);
       }
     }
 
