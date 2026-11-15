@@ -40,6 +40,28 @@
       font-variant-numeric: tabular-nums;
       font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     }
+    /* Screen-space labels stay above the orbiting satellites as the camera moves. */
+    #satellite-label-layer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .satellite-label {
+      position: absolute;
+      display: none;
+      transform: translate(-50%, calc(-100% - 13px));
+      padding: 3px 7px;
+      border: 1px solid rgba(167, 139, 250, 0.55);
+      border-radius: 5px;
+      background: rgba(5, 8, 17, 0.86);
+      color: #f1e8ff;
+      font: 600 11px/1.3 'JetBrains Mono', ui-monospace, monospace;
+      white-space: nowrap;
+      text-shadow: 0 1px 2px #000;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
     input[type="date"],
     input[type="number"],
     select {
@@ -1156,6 +1178,8 @@
     let sunGroup, sunCoreMesh, sunCoronaMesh;
     let moonSystemGroup, moonMesh, pinGroup;
     let satOrbitGroup, satMeshMap = {}, satLinkGroup;
+    let satLabelLayer = null;
+    const satLabelMap = {};
     let moonOrbitLine, earthDteLine;
     let dsnBeams = {}, dsnMarkers = {};
     let prevMoonWorldPos = null;
@@ -1663,6 +1687,12 @@
     }
 
     function init3DRelayConstellation() {
+      // HTML overlay: labels remain upright and legible at any camera orientation.
+      satLabelLayer = document.createElement("div");
+      satLabelLayer.id = "satellite-label-layer";
+      satLabelLayer.setAttribute("aria-hidden", "true");
+      document.getElementById("stage-3d").appendChild(satLabelLayer);
+
       satOrbitGroup = new THREE.Group();
       scene.add(satOrbitGroup); // Translating with the Moon, never tidally rotating with it.
 
@@ -1702,7 +1732,58 @@
         satObj.add(wings);
         satOrbitGroup.add(satObj);
         satMeshMap[sat.id] = satObj;
+
+        const label = document.createElement("div");
+        label.className = "satellite-label";
+        label.textContent = sat.id.replace(/^SV-(\d+)$/, "LCRNS-$1");
+        label.style.borderColor = sat.cssColor + "99";
+        satLabelLayer.appendChild(label);
+        satLabelMap[sat.id] = label;
       });
+    }
+
+    // True when the rendered Moon or Earth would hide the satellite from the camera.
+    function sphereOccludesCameraRay(cameraPos, satellitePos, spherePos, radius) {
+      const ray = satellitePos.clone().sub(cameraPos);
+      const lengthSq = ray.lengthSq();
+      if (lengthSq <= 0) return false;
+      const t = spherePos.clone().sub(cameraPos).dot(ray) / lengthSq;
+      if (t <= 0 || t >= 1) return false;
+      return cameraPos.clone().addScaledVector(ray, t).distanceToSquared(spherePos) < radius * radius;
+    }
+
+    function updateSatelliteLabels3D() {
+      if (!satLabelLayer || !camera || !renderer) return;
+      const visible = state.view === "globe" && state.showRelayOrbits;
+      if (!visible) {
+        Object.values(satLabelMap).forEach(label => { label.style.display = "none"; });
+        return;
+      }
+      // Project the five rendered satellite positions, not the unscaled physical coordinates.
+      const viewport = renderer.domElement.getBoundingClientRect();
+      const earthPos = earthMesh.getWorldPosition(new THREE.Vector3());
+      const moonPos = moonSystemGroup.getWorldPosition(new THREE.Vector3());
+      const cameraPos = camera.getWorldPosition(new THREE.Vector3());
+      for (const sat of RELAY_SATELLITES) {
+        const label = satLabelMap[sat.id];
+        const mesh = satMeshMap[sat.id];
+        if (!label || !mesh || !mesh.visible) continue;
+        const world = mesh.getWorldPosition(new THREE.Vector3());
+        const projected = world.clone().project(camera);
+        const onScreen = projected.z >= -1 && projected.z <= 1 &&
+          Math.abs(projected.x) <= 1 && Math.abs(projected.y) <= 1;
+        const occulted = onScreen && (
+          sphereOccludesCameraRay(cameraPos, world, moonPos, 1.0) ||
+          sphereOccludesCameraRay(cameraPos, world, earthPos, EARTH_RADIUS_3D)
+        );
+        if (!onScreen || occulted) {
+          label.style.display = "none";
+          continue;
+        }
+        label.style.left = `${(projected.x * 0.5 + 0.5) * viewport.width}px`;
+        label.style.top = `${(-projected.y * 0.5 + 0.5) * viewport.height}px`;
+        label.style.display = "block";
+      }
     }
 
     // Modify existing GPU line buffers; allocating geometries every frame causes stutter.
@@ -2119,7 +2200,7 @@
             ctx2D.fill();
             ctx2D.fillStyle = "#e9d5ff";
             ctx2D.font = "10px monospace";
-            ctx2D.fillText(`🛰 ${rel.id}`, satPos.x + 6, satPos.y + 3);
+            ctx2D.fillText(`🛰 ${rel.id.replace(/^SV-(\d+)$/, "LCRNS-$1")}`, satPos.x + 6, satPos.y + 3);
           });
         }
       } else {
@@ -2204,7 +2285,7 @@
             ctx2D.fill();
             ctx2D.fillStyle = "#e9d5ff";
             ctx2D.font = "10px monospace";
-            ctx2D.fillText(`🛰 ${rel.id}`, satPos.x + 6, satPos.y + 3);
+            ctx2D.fillText(`🛰 ${rel.id.replace(/^SV-(\d+)$/, "LCRNS-$1")}`, satPos.x + 6, satPos.y + 3);
           });
         }
       }
@@ -2728,6 +2809,7 @@
 
       if (state.view === "globe" && renderer) {
         if (controls) controls.update();
+        updateSatelliteLabels3D();
         renderer.render(scene, camera);
       }
     }
