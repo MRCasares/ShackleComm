@@ -439,11 +439,11 @@
     .status-rail button { font-size: 12px; }
     .dur-btn { font-size: 13px !important; min-height: 32px; min-width: 39px; padding: 7px 9px !important; }
     .site-row-flags { display: inline-flex; align-items:center; justify-content:flex-end; gap: 7px; flex-shrink: 0; }
-    .viability-badge { display: inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; min-width: 64px; padding: 4px 7px; border: 1px solid #756443; border-radius: 7px; background: #30291e; color: var(--pigment-linen); white-space: nowrap; line-height: 1.1; }
+    .viability-badge { display: inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; min-width: 64px; padding: 4px 7px; border: 1px solid var(--viability-color, var(--pigment-solar)); border-radius: 7px; background: color-mix(in srgb, var(--viability-color, var(--pigment-solar)) 13%, var(--bg-well)); color: var(--viability-color, var(--pigment-solar)); white-space: nowrap; line-height: 1.1; transition: background .18s, border-color .18s, color .18s; }
     .viability-badge > span { font-size: 10px; font-weight: 500; letter-spacing: .01em; }
-    .viability-badge > b { font-size: 14px; font-weight: 700; color: var(--ink-primary); }
-    .viability-badge small { font-size: 10px; font-weight: 400; color: var(--ink-muted); }
-    .site-row.is-selected .viability-badge { border-color: var(--pigment-solar); }
+    .viability-badge > b { font-size: 14px; font-weight: 700; color: inherit; }
+    .viability-badge small { font-size: 10px; font-weight: 400; color: inherit; opacity: .8; }
+    .site-row.is-selected .viability-badge { outline: 1px solid var(--border-strong); outline-offset: 2px; }
     .site-row-simple .site-row-tag { max-width: 74px; font-size: 10px; }
     .site-row-simple .site-row-name { min-width: 0; flex: 1; }
     @media (max-width: 767px) {
@@ -472,6 +472,7 @@
       <button type="button" id="focus-system-btn" onclick="setCameraFocus('system')" class="px-2 py-0.5 square font-medium ink-primary ui-hover-ink transition">Earth–Moon</button>
     </div>
     <div id="bottom-pin-legend" class="pin-legend hidden" aria-label="Pinned sites"></div>
+    <button id="toggle-planet-orbits-btn" type="button" onclick="togglePlanetaryOrbits()" title="Show Moon around Earth and Earth around Sun orbit guides (distances not to scale)" aria-pressed="true" class="flex items-center gap-1.5 px-2 py-0.5 square surface-well ui-hover ink-solar border rule font-medium transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="5" transform="rotate(-25 12 12)"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg><span id="planet-orbits-label">Orbits: ON</span></button>
     <button id="toggle-orbits-btn" type="button" onclick="toggleSatelliteOrbits()" class="flex items-center gap-1.5 px-2 py-0.5 square wash-relay ui-hover ink-relay border rule-relay font-medium transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="m9 12-5-3v6l5-3zm6 0 5-3v6l-5-3M12 9V5m0 10v4"/></svg><span id="orbits-btn-label">Satellites: ON</span></button>
     <button id="toggle-dte-beam-btn" type="button" onclick="toggleDteBeam()" class="flex items-center gap-1.5 px-2 py-0.5 square wash-earth ui-hover ink-earth border rule-earth font-medium transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg><span id="dte-beam-label">DSN links: ON</span></button>
     <span id="lunar-phase-pill" class="mono ink-solar font-medium pointer-events-none">Moon phase</span>
@@ -666,6 +667,16 @@
         </details>
 
         <details class="info-fold">
+          <summary class="help-section-title ink-earth">Orbit paths &amp; scale</summary>
+          <p class="ink-primary mt-1">
+            · <strong>Moon around Earth:</strong> a = 384,400 km, e = 0.0549, inclination = 5.145° to the ecliptic; the guide follows the existing approximate Moon position and its changing orbital node. The ring is drawn through the displayed Moon.<br/>
+            · <strong>Earth around Sun:</strong> JPL mean J2000 e = 0.01671022 and longitude of perihelion ≈102.95°. This ecliptic ellipse is drawn through Earth in the Earth-centered display frame; it appears in the Earth–Moon camera view. Scroll out to see more of it.<br/>
+            · <strong>Display geometry is NOT to scale:</strong> the 3D application deliberately exaggerates Earth–Moon spacing relative to 1 AU, and the solar-direction ephemeris is approximate. Neither path is a JPL Horizons trajectory or an input to the satellite/DSN communications calculation. The ellipse lines are educational orbit guides, not high-precision ephemerides.<br/>
+            · References: <a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html" target="_blank" rel="noopener noreferrer" class="ink-earth underline">NASA Earth Fact Sheet</a> and <a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noopener noreferrer" class="ink-earth underline">NASA Moon Fact Sheet</a>.
+          </p>
+        </details>
+
+        <details class="info-fold">
           <summary class="help-section-title ink-solar">Sunlight &amp; terrain</summary>
           <p class="ink-primary mt-1">
             · <strong>Surface Imagery &amp; Sites:</strong> NASA SVS LRO/LOLA <span class="mono ink-primary">lroc_color_2k.jpg</span> and IAU <span class="mono ink-primary">MOON_ME</span> coordinates for NASA Artemis III candidate sites, LOLA South Pole catalogs, and Apollo/CLPS/Chandrayaan/Chang’e missions.<br/>
@@ -804,6 +815,11 @@
     const MOON_ORBIT_INC_RAD = 5.145 * DEG;
     const MOON_AXIAL_OBLIQUITY_RAD = 1.54 * DEG;
     const SUN_DISTANCE_3D = 95.0;
+    // NASA/JPL mean Earth heliocentric elements (J2000); guide uses the same
+    // intentionally compressed display scale as the existing 3D Earth-Moon scene.
+    const EARTH_SOLAR_ORBIT_ECC = 0.01671022;
+    const EARTH_PERIHELION_J2000_DEG = 102.94719;
+    const EARTH_PERIHELION_RATE_DEG_PER_CENTURY = 0.3179526;
 
     const state = {
       view: "globe",              // 'globe' | 'pole' | 'global'
@@ -819,6 +835,7 @@
       playSpeed: 1,               // 1x = 1 simulated hour per real second
       showRelayOrbits: true,
       showDteBeam: true,
+      showPlanetaryOrbits: true,
       lastFrameMs: performance.now(),
       lastTelemetryMs: 0,
       moonImageData: null,
@@ -1333,7 +1350,7 @@
     let satOrbitGroup, satMeshMap = {}, satLinkGroup;
     let satLabelLayer = null;
     const satLabelMap = {};
-    let moonOrbitLine, earthDteLine;
+    let moonOrbitLine, earthSolarOrbitLine, earthDteLine;
     let dsnBeams = {}, dsnMarkers = {};
     let prevMoonWorldPos = null;
 
@@ -1549,7 +1566,7 @@
       const container = document.getElementById("stage-3d");
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x12110f);
-      camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
+      camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 850);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1560,7 +1577,7 @@
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.minDistance = 1.35;
-        controls.maxDistance = 95.0;
+        controls.maxDistance = 300.0;
       } else {
         let drag = false, lx = 0, ly = 0;
         let radius = 4.6;
@@ -1587,7 +1604,7 @@
         window.addEventListener("pointerup", () => { drag = false; });
         renderer.domElement.addEventListener("wheel", e => {
           e.preventDefault();
-          radius = Math.max(1.35, Math.min(95, radius * (1 + e.deltaY * 0.001)));
+          radius = Math.max(1.35, Math.min(300, radius * (1 + e.deltaY * 0.001)));
         }, { passive: false });
       }
 
@@ -1670,12 +1687,25 @@
       // C. MOON ORBITAL TRAJECTORY RING AROUND EARTH
       // =======================================================================
       const orbitMat = new THREE.LineBasicMaterial({
-        color: 0x575147,
+        color: 0xd4b483,
         transparent: true,
-        opacity: 0.24
+        opacity: 0.66,
+        depthWrite: false
       });
       moonOrbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMat);
+      moonOrbitLine.name = "Moon around Earth · e 0.0549 · i 5.145deg";
       scene.add(moonOrbitLine);
+
+      // The Earth-Sun orbit guide is plotted in the geocentric ecliptic display
+      // frame: the ellipse translates as the apparent Sun moves, while Earth
+      // stays at the origin. This is a SCALE-COMPRESSED guide, not ephemeris.
+      earthSolarOrbitLine = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineBasicMaterial({color: 0x5c9ead, transparent: true, opacity: 0.40, depthWrite: false})
+      );
+      earthSolarOrbitLine.name = "Earth around Sun · e 0.01671022 · scale compressed";
+      earthSolarOrbitLine.visible = false; // Show only when viewing the Earth-Moon system.
+      scene.add(earthSolarOrbitLine);
 
       // Direct-to-Earth (DTE) Telemetry Line from Inspected Lunar Site to Earth
       const dteMat = new THREE.LineBasicMaterial({
@@ -1815,28 +1845,71 @@
       earthMesh.quaternion.copy(earthFixedToWorldQuaternion(getEarthDsnGeometry(dateObj), moonPos));
       earthMesh.updateMatrixWorld(true);
 
-      // 5. Update Moon's 27.3-day orbital trajectory ring around Earth for current nodal plane
-      if (moonOrbitLine && (!moonOrbitLine.userData.lastOrbitEpoch ||
-          Math.abs(dateObj.getTime() - moonOrbitLine.userData.lastOrbitEpoch) >= 1800000)) {
+      // 5. Both guides are visual only; calculations above and real DSN/relay
+      // line-of-sight use their original physical (kilometre) coordinates.
+      if (moonOrbitLine) moonOrbitLine.visible = state.showPlanetaryOrbits;
+      if (earthSolarOrbitLine) {
+        earthSolarOrbitLine.visible = state.showPlanetaryOrbits && state.cameraFocus === "system";
+      }
+      // Rebuild at a 5-minute SIMULATED epoch interval: frequent enough to
+      // keep paths aligned with continuous playback without a frame-by-frame
+      // geometry allocation. The Moon's orbital plane has a changing node.
+      if (!moonOrbitLine.userData.lastOrbitEpoch ||
+          Math.abs(dateObj.getTime() - moonOrbitLine.userData.lastOrbitEpoch) >= 300000) {
         moonOrbitLine.userData.lastOrbitEpoch = dateObj.getTime();
-        const pts = [];
-        for (let s = 0; s <= 96; s++) {
-          const nu = (s / 96) * Math.PI * 2;
-          const r = MOON_ORBIT_SMA_3D * (1 - MOON_ORBIT_ECC * Math.cos(nu));
-          const u = nu + (eph.moonTrueLon - eph.moonMeanAnomaly) - eph.ascendingNode;
-          const cosO = Math.cos(eph.ascendingNode);
-          const sinO = Math.sin(eph.ascendingNode);
-          const cosU = Math.cos(u);
-          const sinU = Math.sin(u);
-          const cosI = Math.cos(MOON_ORBIT_INC_RAD);
-          const sinI = Math.sin(MOON_ORBIT_INC_RAD);
-          const xEcl = r * (cosO * cosU - sinO * sinU * cosI);
-          const yEcl = r * (sinO * cosU + cosO * sinU * cosI);
-          const zEcl = r * (sinU * sinI);
-          pts.push(new THREE.Vector3(xEcl, zEcl, -yEcl));
+        const M = norm360(eph.moonMeanAnomaly * RAD) * DEG;
+        let E = M;
+        for (let k = 0; k < 6; k++) E -= (E - MOON_ORBIT_ECC * Math.sin(E) - M) / (1 - MOON_ORBIT_ECC * Math.cos(E));
+        const trueAnomaly = Math.atan2(Math.sqrt(1 - MOON_ORBIT_ECC ** 2) * Math.sin(E), Math.cos(E) - MOON_ORBIT_ECC);
+        const actualRadius = MOON_ORBIT_SMA_3D * (1 - MOON_ORBIT_ECC * Math.cos(M));
+        // Make a small (<0.4%) display-scale adjustment so the ellipse
+        // passes EXACTLY through the Moon's existing approximate scene point.
+        const displayA = actualRadius * (1 + MOON_ORBIT_ECC * Math.cos(trueAnomaly)) /
+          (1 - MOON_ORBIT_ECC ** 2);
+        const cosO = Math.cos(eph.ascendingNode), sinO = Math.sin(eph.ascendingNode);
+        const cosI = Math.cos(MOON_ORBIT_INC_RAD), sinI = Math.sin(MOON_ORBIT_INC_RAD);
+        const lunarPts = [];
+        for (let j = 0; j <= 192; j++) {
+          const angle = j / 192 * Math.PI * 2;
+          const f = trueAnomaly + angle;
+          const r = displayA * (1 - MOON_ORBIT_ECC ** 2) / (1 + MOON_ORBIT_ECC * Math.cos(f));
+          const argument = eph.moonTrueLon + angle - eph.ascendingNode;
+          const cU = Math.cos(argument), sU = Math.sin(argument);
+          lunarPts.push(new THREE.Vector3(
+            r * (cosO * cU - sinO * sU * cosI),
+            r * sU * sinI,
+            -r * (sinO * cU + cosO * sU * cosI)
+          ));
         }
-        moonOrbitLine.geometry.dispose();
-        moonOrbitLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+        const oldMoonGeometry = moonOrbitLine.geometry;
+        moonOrbitLine.geometry = new THREE.BufferGeometry().setFromPoints(lunarPts);
+        oldMoonGeometry.dispose();
+
+        // Earth's heliocentric orbit: eccentricity, perihelion orientation and
+        // ecliptic plane based on NASA/JPL mean elements. The planet's apparent
+        // phase is inherited from the existing low-precision solar direction.
+        // Distance is re-scaled to meet the drawn Earth at (0,0,0), preventing
+        // an inconsistent path while preserving the visual-only character.
+        if (earthSolarOrbitLine) {
+          const solarCenter = new THREE.Vector3(sunGroup.position.x, 0, sunGroup.position.z);
+          const displayedDistance = solarCenter.length();
+          const earthLongitude = Math.atan2(solarCenter.z, -solarCenter.x);
+          const centuries = eph.d / 36525;
+          const peri = (EARTH_PERIHELION_J2000_DEG +
+            EARTH_PERIHELION_RATE_DEG_PER_CENTURY * centuries) * DEG;
+          const e = EARTH_SOLAR_ORBIT_ECC;
+          const a = displayedDistance * (1 + e * Math.cos(earthLongitude - peri)) / (1 - e * e);
+          const earthPts = [];
+          for (let j = 0; j <= 256; j++) {
+            const longitude = j / 256 * Math.PI * 2;
+            const r = a * (1 - e * e) / (1 + e * Math.cos(longitude - peri));
+            earthPts.push(new THREE.Vector3(r * Math.cos(longitude), 0, -r * Math.sin(longitude)));
+          }
+          const oldEarthGeometry = earthSolarOrbitLine.geometry;
+          earthSolarOrbitLine.geometry = new THREE.BufferGeometry().setFromPoints(earthPts);
+          oldEarthGeometry.dispose();
+          earthSolarOrbitLine.position.copy(solarCenter);
+        }
       }
     }
 
@@ -2041,6 +2114,14 @@
       });
     }
 
+    function togglePlanetaryOrbits() {
+      state.showPlanetaryOrbits = !state.showPlanetaryOrbits;
+      document.getElementById("planet-orbits-label").textContent = state.showPlanetaryOrbits ? "Orbits: ON" : "Orbits: OFF";
+      document.getElementById("toggle-planet-orbits-btn").setAttribute("aria-pressed", String(state.showPlanetaryOrbits));
+      if (moonOrbitLine) moonOrbitLine.visible = state.showPlanetaryOrbits;
+      if (earthSolarOrbitLine) earthSolarOrbitLine.visible = state.showPlanetaryOrbits && state.cameraFocus === "system";
+    }
+
     function toggleSatelliteOrbits() {
       state.showRelayOrbits = !state.showRelayOrbits;
       document.getElementById("orbits-btn-label").textContent = state.showRelayOrbits ? "Satellites: ON" : "Satellites: OFF";
@@ -2059,6 +2140,7 @@
 
     function setCameraFocus(mode) {
       state.cameraFocus = mode;
+      if (earthSolarOrbitLine) earthSolarOrbitLine.visible = state.showPlanetaryOrbits && mode === "system";
       const moonBtn = document.getElementById("focus-moon-btn");
       const sysBtn = document.getElementById("focus-system-btn");
       const mobBtn = document.getElementById("mobile-focus-btn");
@@ -2488,6 +2570,19 @@
     const UI_ICON_SUN = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`;
     const UI_ICON_EARTH = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg>`;
     const UI_ICON_PIN = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
+    // Red (0) → ochre/yellow (50) → sage green (100). Scores themselves and
+    // their 55% sunlight / 45% Earth-comms weighting remain unchanged.
+    function viabilityColor(score) {
+      const value = Math.min(100, Math.max(0, Number(score) || 0));
+      const red = [184, 74, 57], yellow = [217, 155, 38], green = [123, 160, 104];
+      const a = value <= 50 ? red : yellow;
+      const b = value <= 50 ? yellow : green;
+      const t = value <= 50 ? value / 50 : (value - 50) / 50;
+      return `rgb(${a.map((c, i) => Math.round(c * (1 - t) + b[i] * t)).join(",")})`;
+    }
+    function viabilityBadgeStyle(score) {
+      return `--viability-color:${viabilityColor(score)}`;
+    }
     // Retain the exact existing 55% sunlight / 45% communication scoring.
     // Cache calculated scores for the All sites selector within the same window rebuild.
     let siteViabilityScores = new Map();
@@ -2498,7 +2593,7 @@
       container.innerHTML = recs.map(({site, stats}) => {
         const selected = Math.abs(state.lat - site.lat) < .05 && Math.abs(state.lon - site.lon) < .05;
         return `<button type="button" data-site="${site.id}" class="site-row ${selected ? 'is-selected' : ''}">
-          <div class="site-row-main"><span class="site-row-name">${site.name}</span><span class="site-row-flags">${selected ? '<span class="active-caption">SELECTED</span>' : ''}<span class="viability-badge" title="Estimated relative viability: sunlight 55%, Earth communications 45%"><span>Viability</span><b>${stats.score}<small>/100</small></b></span></span></div>
+          <div class="site-row-main"><span class="site-row-name">${site.name}</span><span class="site-row-flags">${selected ? '<span class="active-caption">SELECTED</span>' : ''}<span class="viability-badge" style="${viabilityBadgeStyle(stats.score)}" title="Viability ${stats.score}/100 · sunlight 55%, Earth communications 45%"><span>Viability</span><b>${stats.score}<small>/100</small></b></span></span></div>
           <div class="site-meters">
             <span class="meter" title="Sunlight availability"><span class="ink-solar">${UI_ICON_SUN}</span><span class="meter-track"><i style="width:${Math.round(stats.sunPct)}%;background:var(--pigment-solar)"></i></span><b>${Math.round(stats.sunPct)}%</b></span>
             <span class="meter" title="Connection to Earth"><span class="ink-earth">${UI_ICON_EARTH}</span><span class="meter-track"><i style="width:${Math.round(stats.anyCommsPct)}%;background:var(--pigment-earth)"></i></span><b>${Math.round(stats.anyCommsPct)}%</b></span>
@@ -2530,8 +2625,10 @@
         }
         const viability = document.createElement("span");
         viability.className = "viability-badge";
-        viability.title = "Estimated relative viability: sunlight 55%, Earth communications 45%";
-        viability.innerHTML = `<span>Viability</span><b>${siteViabilityScores.get(site.id)}<small>/100</small></b>`;
+        const score = siteViabilityScores.get(site.id);
+        viability.title = `Viability ${score}/100 · sunlight 55%, Earth communications 45%`;
+        viability.style.setProperty("--viability-color", viabilityColor(score));
+        viability.innerHTML = `<span>Viability</span><b>${score}<small>/100</small></b>`;
         const annotations = document.createElement("span");
         annotations.className = "site-row-flags";
         annotations.append(tag, viability);
@@ -2696,7 +2793,10 @@
       state.activeWindowCache = analyzeTimeframe(state.lat, state.lon, state.startDate, state.durationDays, 120);
       const cache = state.activeWindowCache;
 
-      document.getElementById("avg-score-badge").textContent = `Viability ${cache.score}/100`;
+      const overallViability = document.getElementById("avg-score-badge");
+      overallViability.textContent = `Viability ${cache.score}/100`;
+      overallViability.style.color = viabilityColor(cache.score);
+      overallViability.style.borderColor = viabilityColor(cache.score);
       document.getElementById("stat-sun-avg").textContent = `${cache.sunPct.toFixed(1)}% (${Math.round(cache.sunHours)}h)`;
       document.getElementById("stat-earth-avg").textContent = `${cache.anyCommsPct.toFixed(1)}% (${Math.round(cache.anyCommsPct * cache.totalHours / 100)}h)`;
       document.getElementById("stat-relay-avg").textContent = `${cache.relayPct.toFixed(1)}% (${Math.round(cache.relayHours)}h)`;
