@@ -12,7 +12,7 @@
   <!-- Mission-control typography: compact aerospace labels and tabular instrument readouts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -30,11 +30,11 @@
       --pigment-warn: #b84a39;
       --pigment-linen: #d4b483;
     }
-    *, *::before, *::after { box-sizing: border-box; border-radius: 0 !important; }
+    *, *::before, *::after { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       color: var(--ink-primary); background: var(--bg-void);
-      font: 400 11px/1.55 'IBM Plex Mono', ui-monospace, monospace;
+      font: 400 12px/1.5 'Roboto', Arial, sans-serif;
       font-variant-numeric: tabular-nums; user-select: none;
     }
     body::after {
@@ -43,9 +43,9 @@
       opacity: .03; pointer-events: none; mix-blend-mode: screen;
     }
     h1, h2, h3, h4, .bay-index, .brand-wordmark {
-      font-family: 'Archivo', 'Arial Narrow', sans-serif; letter-spacing: .035em;
+      font-family: 'Roboto', Arial, sans-serif; letter-spacing: .015em;
     }
-    .mono, button, input, select, summary, .satellite-label { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+    .mono, button, input, select, summary, .satellite-label { font-family: 'Roboto', Arial, sans-serif; font-variant-numeric: tabular-nums; }
     button { cursor: pointer; border: 1px solid var(--border-rule); }
     button, input, select { transition: background-color .14s linear, border-color .14s linear, color .14s linear; }
     button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible {
@@ -63,7 +63,7 @@
     }
     input[type='date'], input[type='number'], select { color-scheme: dark; border: 1px solid var(--border-rule); background: var(--bg-well); color: var(--ink-primary); }
     strong { font-weight: 600; }
-    .square { border-radius: 0 !important; }
+    .square { border-radius: 7px !important; }
     .instrument-panel { background: var(--bg-panel); border: 1px solid var(--border-rule); box-shadow: none; }
     .surface-panel { background: var(--bg-panel); }
     .surface-well { background: var(--bg-well); }
@@ -103,7 +103,7 @@
     .command-strip nav { border: 0; padding: 0; gap: 2px; background: var(--bg-well); }
     .command-strip button { min-height: 30px; }
     .brand-wordmark { font-size: 14px; letter-spacing: .14em; white-space: nowrap; }
-    .brand-wordmark small { display: block; color: var(--ink-muted); font: 500 8px/1 'IBM Plex Mono', monospace; letter-spacing: .09em; margin-top: 2px; }
+    .brand-wordmark small { display: block; color: var(--ink-muted); font: 500 9px/1 'Roboto', Arial, sans-serif; letter-spacing: .09em; margin-top: 2px; }
     .command-strip .view-btn, .command-strip .dur-btn, .left-tab, .status-rail button { border: 1px solid var(--border-rule); }
     .command-strip .view-btn, .dur-btn { padding: 7px 11px; }
     .command-strip .view-btn.fill-inverted, .dur-btn.fill-inverted, .left-tab.fill-inverted,
@@ -119,7 +119,7 @@
       min-height: 27px; display: inline-flex; align-items: center; padding-left: 11px; padding-right: 11px;
       border-right: 1px solid var(--border-rule);
     }
-    .rail-ident { font: 700 10px 'Archivo', sans-serif; letter-spacing: .12em; color: var(--ink-primary); padding: 0 12px 0 2px; }
+    .rail-ident { font: 700 10px 'Roboto', Arial, sans-serif; letter-spacing: .12em; color: var(--ink-primary); padding: 0 12px 0 2px; }
     .rail-ident b { color: var(--pigment-solar); }
     .status-rail > span:has(.w-2), .status-rail > .pointer-events-none { gap: 5px; }
     #lunar-phase-pill { color: var(--pigment-solar); }
@@ -141,11 +141,11 @@
       font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .105em;
       color: var(--ink-primary); padding: 0 10px 10px; border-bottom: 1px solid var(--border-strong);
     }
-    .bay-index span:last-child { font: 400 8px 'IBM Plex Mono', monospace; letter-spacing: .02em; color: var(--ink-muted); }
+    .bay-index span:last-child { font: 400 9px 'Roboto', Arial, sans-serif; letter-spacing: .02em; color: var(--ink-muted); }
     .left-tab { padding: 8px 4px; }
     .survey-bay .left-tab.fill-inverted { background: var(--ink-primary); color: var(--bg-void); }
     .survey-bay button:not(.fill-inverted):hover { background: #28251f; }
-    .survey-bay #site-title { font-size: 16px; line-height: 1.2; font-family: 'Archivo', sans-serif; }
+    .survey-bay #site-title { font-size: 16px; line-height: 1.2; font-family: 'Roboto', Arial, sans-serif; }
     .survey-bay #site-subtitle { color: var(--ink-muted); }
     .survey-bay .grid.grid-cols-2 > div, .survey-bay .grid.grid-cols-3 > div {
       min-width: 0;
@@ -189,7 +189,7 @@
       display: inline-flex; justify-content: center; align-items: center; align-self: flex-start;
       flex: 0 0 44px; width: 44px; height: 44px; min-width: 44px; min-height: 44px;
       padding: 0; background: var(--bg-well); color: var(--ink-primary);
-      border: 1px solid var(--border-strong); font: 600 23px/1 'IBM Plex Mono', monospace;
+      border: 1px solid var(--border-strong); font: 600 23px/1 'Roboto', sans-serif;
       position: relative; z-index: 2; touch-action: manipulation;
     }
     #compare-cards .pin-remove-btn:hover { color: var(--bg-void); background: var(--pigment-warn); border-color: var(--pigment-warn); }
@@ -209,7 +209,7 @@
     .satellite-label {
       position: absolute; display: none; transform: translate(-50%, calc(-100% - 13px));
       padding: 3px 7px; border: 1px solid var(--pigment-relay); background: var(--bg-panel);
-      color: var(--ink-primary); font: 600 10px/1.3 'IBM Plex Mono', monospace;
+      color: var(--ink-primary); font: 600 10px/1.3 'Roboto', sans-serif;
       white-space: nowrap; box-shadow: none; text-shadow: none;
     }
     #help-modal > div { border: 1px solid var(--border-strong); background: var(--bg-panel); }
@@ -301,6 +301,125 @@
       .bay-left { left: 0; } .bay-right { right: 0; }
       .bay-index span:last-child { display: none; }
     }
+
+    /* LUNA-VIEW / human-scale mineral UI refinements */
+    :root { --radius-soft: 8px; --radius-card: 10px; }
+    button, input, select, .instrument-panel, .survey-bay, .telemetry-cell,
+    .timeline-panel, .info-fold, .site-row, .data-square, .satellite-label { border-radius: var(--radius-soft); }
+    .survey-bay { padding: 17px 15px; background: #191815; gap: 12px; overflow-y:auto; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .bay-left { border-right: 1px solid var(--border-rule); }
+    .bay-right { border-left: 1px solid var(--border-rule); }
+    .survey-bay::before, .survey-bay::after { display:none; }
+    .command-strip { height: 58px; min-height: 58px; padding-left: 50px; padding-right: 50px; }
+    .command-strip > * { min-height: 57px; }
+    .brand-wordmark { font-weight: 700; font-size: 14px; letter-spacing:.045em; }
+    .brand-wordmark small { font-size: 9px; letter-spacing: .02em; }
+    .status-rail { height: 43px; gap:6px; padding:0 15px; }
+    .status-rail > div, .status-rail > button { border-right: none; }
+    .status-rail button { min-height: 29px; }
+    .survey-bay { top:58px; bottom:43px; }
+    .sidebar-toggle { display:flex!important; justify-content:center; align-items:center; position: fixed; top:10px; z-index:40; width:38px;height:38px; color:var(--ink-primary)!important; background:#292720!important; border:1px solid var(--border-strong)!important; border-radius:8px!important; }
+    .sidebar-toggle-left { left:8px; }
+    .sidebar-toggle-right { right:8px; }
+    .sidebar-toggle:hover, .sidebar-toggle.is-open { border-color:var(--pigment-earth)!important; background:#2f322f!important; }
+    .panel-close-btn { margin-left:auto; width:25px; height:25px; border-radius:6px; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+    .bay-index { display:flex; padding: 0 0 11px; letter-spacing:.04em; font-size:12px; text-transform:none; border-color:var(--border-rule); }
+    .bay-index span:first-child { display:flex; align-items:center; gap:9px; }
+    .bay-index svg { color:var(--pigment-earth); }
+    .bay-index span:last-of-type { margin-left:auto; font-size:9px; }
+    .bay-intro, .info-description, .model-hint { font-size:11px; line-height:1.5; color:var(--ink-muted); margin:0; }
+    .survey-bay .left-tab {display:flex;gap:4px;align-items:center;justify-content:center;white-space:nowrap;font-size:10px; padding:9px 2px;}
+    .survey-bay .left-tab svg { width:14px; height:14px; }
+    .source-chip { padding:3px 6px; background:var(--bg-well); color:var(--ink-muted); border:1px solid var(--border-rule); border-radius:5px; white-space:nowrap; font-size:9px; }
+    #site-list, #recommend-list { gap:5px; }
+    .site-row { display:block; width:100%; background:#201e1a!important; border:1px solid var(--border-rule)!important; color:var(--ink-primary)!important; padding:10px 11px; text-align:left; transition: border-color .15s, background .15s; }
+    .site-row:hover { border-color:var(--border-strong)!important; background:#292620!important; }
+    .site-row.is-selected { background:#2c2b24!important; border:1px solid var(--pigment-solar)!important; box-shadow:inset 3px 0 0 var(--pigment-solar); }
+    .site-row-main { display:flex;align-items:center;justify-content:space-between; gap:8px; margin-bottom:8px; }
+    .site-row-name { font-size:12px; font-weight:600; line-height:1.4; }
+    .active-caption {font-size:9px; font-weight:700; color:var(--pigment-solar);letter-spacing:.03em; }
+    .site-meters { display:flex;gap:12px; }
+    .meter { display:flex; align-items:center; gap:5px; flex:1; min-width:0; color:var(--ink-muted); }
+    .meter-track {flex:1;height:4px;background:#38342b;border-radius:3px;overflow:hidden;}
+    .meter-track i {display:block;height:100%;border-radius:3px;}
+    .meter b {font-size:10px;font-weight:600;min-width:27px;text-align:right;color:var(--ink-primary);}
+    .site-row-simple {display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;}
+    .site-row-tag {color:var(--ink-muted);font-size:10px;flex-shrink:0;max-width:45%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+    .site-row-simple.is-selected .site-row-tag {color:var(--pigment-solar);font-weight:700;}
+    .selected-site-header {padding:12px;display:flex;align-items:center;gap:11px; border:1px solid #5b4d32; background:linear-gradient(120deg,#2c291f,#211f1a);border-radius:10px;}
+    .selected-site-icon { display:flex;align-items:center;justify-content:center;width:37px;height:37px;flex-shrink:0;border:1px solid #8d6e35;border-radius:8px;color:var(--pigment-solar);background:#332c1e; }
+    .selected-site-header #site-title { white-space:normal; font:700 14px/1.25 'Roboto',Arial,sans-serif; }
+    .selection-eyebrow {font-size:9px;font-weight:700;letter-spacing:.085em;color:var(--pigment-solar);margin-bottom:3px;}
+    .primary-readouts {gap:8px;}
+    .primary-readouts .telemetry-cell {border:1px solid var(--border-rule);border-radius:10px;padding:10px;background:#201f1b;}
+    .telemetry-cell::before {border-radius:10px 0 0 10px;}
+    .readout-heading {display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.025em;color:var(--ink-muted);white-space:nowrap;}
+    .readout-icon {display:flex;align-items:center;}
+    .readout-status {font-size:12px;line-height:1.35;margin:8px 0 3px; font-weight:700;letter-spacing:0;overflow-wrap:anywhere;}
+    .readout-details {margin-top:7px;padding-top:6px;border-top:1px solid var(--border-rule);font-size:11px;}
+    .readout-details summary {font-size:10px;cursor:pointer;list-style:none;color:var(--ink-muted);display:flex;align-items:center;gap:6px;}
+    .readout-details summary::-webkit-details-marker {display:none;}
+    .readout-details summary::before {content:'+';display:inline-block;width:11px;font-size:14px;color:var(--pigment-earth);}
+    .readout-details[open] > summary::before {content:'−';}
+    .relay-overview { background:#211d1b!important; border:1px solid var(--border-rule)!important; border-radius:10px; padding:11px!important; }
+    .relay-count {font-size:10px;font-weight:700;color:var(--pigment-relay);border:1px solid #633f32;padding:4px 7px;border-radius:6px;white-space:nowrap;}
+    #relay-status {white-space:normal!important;}
+    .timeline-panel {padding:12px;border:1px solid var(--border-rule);background:#201f1b;border-radius:10px;}
+    .timeline-legend {display:flex;align-items:center;justify-content:space-between;margin-top:3px;color:var(--ink-muted);font-size:10px;}
+    .timeline-legend >span {display:flex;align-items:center;gap:5px;}
+    .legend-dot {display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--pigment-solar);}
+    .legend-dot.earth {background:var(--pigment-earth);} .legend-dot.relay {background:var(--pigment-relay);}
+    .info-fold {background:#201f1b; border:1px solid var(--border-rule); padding:10px; border-radius:9px;}
+    .info-fold > summary { cursor:pointer; font-size:12px; font-weight:600; display:flex; gap:8px; align-items:center; color:var(--ink-primary);list-style:none; padding:1px; }
+    .info-fold > summary svg {color:var(--pigment-earth);flex-shrink:0;}
+    .info-fold > summary::-webkit-details-marker {display:none;}
+    .info-fold > summary::after { content:'⌄'; margin-left:auto; color:var(--ink-muted);font-size:15px;line-height:1;transition:transform .15s ease;}
+    .info-fold[open] > summary::after {transform:rotate(180deg);}
+    .data-square {padding:9px 6px;border:1px solid var(--border-rule);background:var(--bg-well);border-radius:7px;min-width:0;}
+    .data-label {display:flex;align-items:center;gap:5px;color:var(--ink-muted);font-size:10px;}
+    .model-hint {display:flex;align-items:center;gap:6px;margin:3px 0;}
+    .help-folds .info-fold {margin:7px 0;}
+    .help-folds .info-fold p {line-height:1.65;color:var(--ink-primary);}
+    #help-modal h3 {display:flex;align-items:center;gap:9px;}
+    #help-modal > div {border-radius:12px;}
+    #compare-cards .pin-remove-btn {border-radius:8px;}
+    .pin-legend {display:flex;align-items:center;gap:4px;}
+    .pin-legend.hidden {display:none!important;}
+    .pin-legend .rail-pin {display:flex;align-items:center;gap:6px;padding:4px 9px;white-space:nowrap;}
+    .rail-pin i {display:block;width:8px;height:8px;border-radius:50%;}
+    .site-selection-popover {position:fixed;bottom:59px;left:50%;transform:translateX(-50%);z-index:25;max-width:min(550px,calc(100vw - 30px));width:max-content;min-width:290px;display:flex;align-items:center;gap:12px;padding:11px 12px;background:#24221e;border:1px solid #745b36;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+    .site-selection-popover.hidden {display:none!important;}
+    .selection-target {flex-shrink:0;color:var(--pigment-solar);background:#393020;border-radius:8px;padding:10px;display:flex;}
+    .selection-copy {display:flex;flex-direction:column;min-width:0;}
+    .selection-copy strong {color:var(--ink-primary);font-size:12px;line-height:1.3;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .selection-copy > span {color:var(--ink-muted);font-size:10px;white-space:nowrap;}
+    .selection-pin-btn {display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;background:var(--ink-primary);color:var(--bg-void);border-color:var(--ink-primary);border-radius:7px;padding:9px 10px;font-weight:700;}
+    .selection-pin-btn:hover {background:#fff4d9;}
+    .selection-dismiss-btn {border:0;background:transparent;color:var(--ink-muted);align-self:flex-start;padding:3px;border-radius:5px;}
+    .active-site-tag {position:fixed;z-index:11;pointer-events:none;transform:translate(-50%,-100%);display:flex;align-items:center;gap:5px;border:1px solid #99743b;background:rgba(34,32,27,.96);color:var(--ink-primary);font-size:11px;font-weight:600;padding:5px 8px;border-radius:7px;max-width:225px;white-space:nowrap;}
+    .active-site-tag svg {flex-shrink:0;color:var(--pigment-solar);}
+    .active-site-tag span {overflow:hidden;text-overflow:ellipsis;}
+    .active-site-tag::after {content:'';position:absolute;bottom:-5px;left:calc(50% - 4px);width:8px;height:8px;background:#22201b;border-right:1px solid #99743b;border-bottom:1px solid #99743b;transform:rotate(45deg);}
+    .satellite-label {border-radius:6px;}
+    input[type='range']::-webkit-slider-thumb {border-radius:2px;}
+    input[type='range']::-moz-range-thumb {border-radius:2px;}
+    @media (max-width: 1080px) {
+      .survey-bay.bay-left {width:278px;} .survey-bay.bay-right {width:303px;}
+    }
+    @media (max-width: 767px) {
+      .command-strip {height:55px;min-height:55px;padding-left:48px;padding-right:48px;}
+      .command-strip > * {min-height:54px;padding:0 8px;}
+      .brand-wordmark, .brand-wordmark small {display:none!important;}
+      .command-strip .view-btn {font-size:11px;padding:7px 8px;}
+      .survey-bay {top:55px;bottom:45px;width:min(340px,91vw)!important;padding:13px;}
+      .status-rail {height:45px;}
+      .status-rail .rail-ident {display:none;}
+      .site-selection-popover {bottom:55px;padding:9px;gap:8px;min-width:0;width:calc(100vw - 24px);}
+      .selection-target {padding:7px;}
+      .selection-copy strong {max-width:min(29vw,150px);}
+      .selection-pin-btn {padding:9px 6px;font-size:11px;}
+      .active-site-tag {max-width:150px; font-size:10px;}
+    }
   </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden bg-[#12110f]">
@@ -311,62 +430,39 @@
   <div id="stage-3d" class="fixed inset-0 w-full h-full cursor-grab active:cursor-grabbing"></div>
   <canvas id="stage-2d" class="fixed inset-0 w-full h-full hidden cursor-crosshair"></canvas>
 
-  <!-- DOCKED LOWER INSTRUMENT STATUS RAIL -->
-  <div class="status-rail z-20 flex items-center gap-0 text-[10px]">
-    <span class="rail-ident">LUNA / SURVEY <b>3.1</b></span>
-    <!-- Camera Focus Switcher -->
-    <div class="flex items-center gap-1 surface-well square p-0.5 border rule" title="Switch 3D Camera Target">
-      <button type="button" id="focus-moon-btn" onclick="setCameraFocus('moon')"
-        class="px-2 py-0.5 square font-semibold fill-inverted ink-void transition">
-        Focus: Moon
-      </button>
-      <button type="button" id="focus-system-btn" onclick="setCameraFocus('system')"
-        class="px-2 py-0.5 square font-medium ink-primary ui-hover-ink transition">
-        Earth-Moon
-      </button>
+  <!-- Low-profile bottom controls: comparison chips exist only for real user pins. -->
+  <div class="status-rail z-20 flex items-center gap-0 text-[10px]" role="toolbar" aria-label="Simulation display controls">
+    <span class="rail-ident">LUNA <b>/</b> VIEW</span>
+    <div class="flex items-center gap-1 surface-well square p-0.5 border rule" title="Switch 3D camera target">
+      <button type="button" id="focus-moon-btn" onclick="setCameraFocus('moon')" class="px-2 py-0.5 square font-semibold fill-inverted ink-void transition">Moon view</button>
+      <button type="button" id="focus-system-btn" onclick="setCameraFocus('system')" class="px-2 py-0.5 square font-medium ink-primary ui-hover-ink transition">Earth–Moon</button>
     </div>
-
-    <span class="ink-muted pointer-events-none">|</span>
-    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 square fill-ink ring-2 rule-solar"></span>Cursor</span>
-    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 square fill-solar"></span>Pin A</span>
-    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 square fill-earth"></span>Pin B</span>
-    <span class="flex items-center gap-1.5 pointer-events-none"><span class="w-2 h-2 square fill-ok"></span>Pin C</span>
-    <span class="ink-muted pointer-events-none">|</span>
-
-    <!-- Relay Orbits Toggle -->
-    <button id="toggle-orbits-btn" type="button" onclick="toggleSatelliteOrbits()"
-      class="flex items-center gap-1.5 px-2 py-0.5 square wash-relay ui-hover ink-relay border rule-relay font-medium transition">
-      <span class="w-2 h-2 square fill-relay"></span>
-      <span id="orbits-btn-label">Relay Sats: ON</span>
-    </button>
-
-    <!-- Earth-Moon Orbit & DTE Vector Toggle -->
-    <button id="toggle-dte-beam-btn" type="button" onclick="toggleDteBeam()"
-      class="flex items-center gap-1.5 px-2 py-0.5 square wash-earth ui-hover ink-earth border rule-earth font-medium transition">
-      <span class="w-2 h-2 square fill-earth"></span>
-      <span id="dte-beam-label">DSN Links: ON</span>
-    </button>
-
-    <span class="ink-muted pointer-events-none">|</span>
-    <span id="lunar-phase-pill" class="mono ink-solar font-medium pointer-events-none">Waxing Crescent</span>
+    <div id="bottom-pin-legend" class="pin-legend hidden" aria-label="Pinned sites"></div>
+    <button id="toggle-orbits-btn" type="button" onclick="toggleSatelliteOrbits()" class="flex items-center gap-1.5 px-2 py-0.5 square wash-relay ui-hover ink-relay border rule-relay font-medium transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="m9 12-5-3v6l5-3zm6 0 5-3v6l-5-3M12 9V5m0 10v4"/></svg><span id="orbits-btn-label">Satellites: ON</span></button>
+    <button id="toggle-dte-beam-btn" type="button" onclick="toggleDteBeam()" class="flex items-center gap-1.5 px-2 py-0.5 square wash-earth ui-hover ink-earth border rule-earth font-medium transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg><span id="dte-beam-label">DSN links: ON</span></button>
+    <span id="lunar-phase-pill" class="mono ink-solar font-medium pointer-events-none">Moon phase</span>
   </div>
+
+  <!-- Site selection action only appears after a site is deliberately clicked. -->
+  <div id="site-selection-popover" class="site-selection-popover hidden" role="group" aria-label="Selected lunar site actions">
+    <div class="selection-target"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg></div>
+    <div class="selection-copy"><div class="selection-eyebrow">SELECTED LOCATION</div><strong id="selection-popover-title">Lunar site</strong><span id="selection-popover-coords"></span></div>
+    <button id="pin-active-btn" type="button" onclick="pinCurrentLocation()" class="selection-pin-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> Pin site</button>
+    <button id="selection-dismiss-btn" type="button" class="selection-dismiss-btn" aria-label="Close site actions"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+  </div>
+  <div id="active-site-tag" class="active-site-tag hidden" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> <span id="active-site-tag-name">Site</span></div>
 
   <!-- ======================================================================= -->
   <!-- 2. FULL-WIDTH COMMAND STRIP: VIEW, EPOCH, AND PLAYBACK                 -->
   <!-- ======================================================================= -->
   <header class="command-strip fixed top-0 left-0 right-0 z-30 flex items-center gap-0 text-xs">
     <!-- Mobile Left Drawer Button -->
-    <button id="toggle-left-btn" type="button" title="Toggle Recommendations & Comparison"
-      class="md:hidden p-1.5 square surface-panel ui-hover ink-primary border rule">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"/>
-      </svg>
-    </button>
+    <button id="toggle-left-btn" type="button" title="Show or hide sites" aria-label="Show or hide sites" aria-controls="left-panel" aria-expanded="true" class="sidebar-toggle sidebar-toggle-left square"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h12M4 17h16"/></svg></button>
 
     <!-- Brand Title -->
     <div class="flex items-center gap-1.5 pr-2 border-r rule shrink-0">
       <span class="w-2 h-2 square fill-earth"></span>
-      <span class="brand-wordmark font-semibold tracking-wide ink-primary hidden sm:inline">LUNA—VIEW <small>FLIGHT DYNAMICS / 03</small></span>
+        <span class="brand-wordmark font-semibold tracking-wide ink-primary">LUNA–VIEW <small>LUNAR MISSION EXPLORER</small></span>
     </div>
 
     <!-- 3-Mode Map View Switcher -->
@@ -375,10 +471,10 @@
         3D Orbit
       </button>
       <button type="button" data-view="pole" class="view-btn px-2.5 py-1 square font-medium transition ink-primary ui-hover-ink">
-        2D South Pole
+        South Pole
       </button>
       <button type="button" data-view="global" class="view-btn px-2.5 py-1 square font-medium transition ink-primary ui-hover-ink">
-        2D Global
+        Global Map
       </button>
     </nav>
 
@@ -406,7 +502,7 @@
     <div class="flex items-center gap-1 pl-2 border-l rule shrink-0">
       <button id="play-btn" type="button" onclick="togglePlay()" title="Continuous playback (1x = 1 simulated hour per real second)"
         class="px-2.5 py-1 square font-semibold fill-inverted ui-hover ink-void flex items-center gap-1 transition">
-        <span id="play-icon">></span>
+        <span id="play-icon" class="play-button-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 5 11 7-11 7V5Z"/></svg></span>
         <span id="play-label">Play</span>
       </button>
       <button id="speed-btn" type="button" onclick="cyclePlaySpeed()" title="Playback speed: 0.25x / 0.5x / 1x / 2x / 4x"
@@ -417,224 +513,100 @@
 
     <!-- Help & Methodology Modal Button ('?') -->
     <button id="help-btn" type="button" title="Data Sources, Earth-Moon Orbital Mechanics & Relay Satellites"
-      class="ml-0.5 w-6 h-6 square surface-panel ui-hover ui-hover-ink border rule font-bold ink-primary flex items-center justify-center transition shrink-0">
-      ?
+      class="ml-0.5 w-6 h-6 square surface-panel ui-hover ui-hover-ink border rule font-bold ink-primary flex items-center justify-center transition shrink-0" aria-label="Information and methodology">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7h.01"/></svg>
     </button>
 
     <!-- Mobile Right Drawer Button -->
-    <button id="toggle-right-btn" type="button" title="Toggle Telemetry & Stats"
-      class="md:hidden p-1.5 square surface-panel ui-hover ink-primary border rule">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-      </svg>
-    </button>
+    <button id="toggle-right-btn" type="button" title="Show or hide telemetry" aria-label="Show or hide telemetry" aria-controls="right-panel" aria-expanded="true" class="sidebar-toggle sidebar-toggle-right square"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 4v16M6 8h1M6 12h1"/></svg></button>
   </header>
 
   <!-- ======================================================================= -->
   <!-- 3. DOCKED GEOLOGICAL SITE SURVEY BAY                                  -->
   <!-- ======================================================================= -->
-  <aside id="left-panel"
-    class="survey-bay bay-left fixed z-20 flex flex-col gap-2.5 text-xs transition-transform duration-200">
-    <div class="bay-index"><span>01 / SELENOGRAPHIC SURVEY</span><span>MOON / SOUTH POLE</span></div>
-    <!-- Top Tabs: Best South Pole | All Sites | Compare -->
-    <div class="grid grid-cols-3 surface-well p-0.5 square border rule text-[11px]">
-      <button type="button" data-tab="recommend"
-        class="left-tab py-1.5 px-1 square font-semibold fill-inverted ink-void transition">
-        Best Pole
-      </button>
-      <button type="button" data-tab="sites"
-        class="left-tab py-1.5 px-1 square font-medium ink-primary ui-hover-ink transition">
-        All Sites
-      </button>
-      <button type="button" data-tab="compare" id="compare-tab-btn"
-        class="left-tab py-1.5 px-1 square font-medium ink-primary ui-hover-ink transition">
-        Compare (2)
-      </button>
+  <aside id="left-panel" class="survey-bay bay-left fixed z-20 flex flex-col gap-3 text-xs transition-transform duration-200" aria-label="Lunar site explorer">
+    <div class="bay-index"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> Explore lunar sites</span><span>MOON</span><button type="button" class="panel-close-btn" data-close-panel="left" title="Collapse sites" aria-label="Collapse sites"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg></button></div>
+    <div class="bay-intro">Choose a location to examine conditions or add it to a comparison.</div>
+    <div class="grid grid-cols-3 surface-well p-0.5 square border rule text-[11px]" role="tablist" aria-label="Site browsing">
+      <button type="button" data-tab="recommend" class="left-tab py-1.5 px-1 square font-semibold fill-inverted ink-void transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg> Suggested</button>
+      <button type="button" data-tab="sites" class="left-tab py-1.5 px-1 square font-medium ink-primary ui-hover-ink transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> All sites</button>
+      <button type="button" data-tab="compare" id="compare-tab-btn" class="left-tab py-1.5 px-1 square font-medium ink-primary ui-hover-ink transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> Pins (0)</button>
     </div>
-
-    <!-- TAB 1: SOUTH POLE RECOMMENDATIONS FOR SELECTED TIMEFRAME -->
     <div id="tab-recommend" class="flex flex-col gap-2 overflow-y-auto pr-0.5">
-      <div class="flex items-center justify-between text-[10px] ink-muted">
-        <span>Top South Pole sites for active window</span>
-        <span id="tex-badge" class="px-1.5 py-0.5 square wash-ok ink-ok border rule-ok">
-          Synthetic terrain
-        </span>
-      </div>
+      <div class="flex items-center justify-between text-[10px] ink-muted"><span>South pole · scored by conditions</span><span id="tex-badge" class="source-chip">Synthetic terrain</span></div>
       <div id="recommend-list" class="flex flex-col gap-1.5"></div>
     </div>
-
-    <!-- TAB 2: ALL CURATED SITES & CUSTOM COORDINATE ENTRY -->
     <div id="tab-sites" class="hidden flex-col gap-2 overflow-y-auto pr-0.5">
       <div id="site-list" class="flex flex-col gap-1 max-h-56 overflow-y-auto"></div>
-
-      <div class="pt-2 border-t rule">
-        <div class="text-[10px] ink-muted mb-1.5">Click anywhere on Moon or enter custom coords:</div>
-        <div class="grid grid-cols-2 gap-1.5">
-          <label class="flex flex-col gap-0.5">
-            <span class="text-[10px] ink-muted">Lat (°N / -°S)</span>
-            <input id="lat-input" type="number" step="0.01" min="-90" max="90"
-              class="surface-well border rule square px-2 py-1 mono ink-primary text-xs focus:outline-none " />
-          </label>
-          <label class="flex flex-col gap-0.5">
-            <span class="text-[10px] ink-muted">Lon (°E / -°W)</span>
-            <input id="lon-input" type="number" step="0.01" min="-180" max="180"
-              class="surface-well border rule square px-2 py-1 mono ink-primary text-xs focus:outline-none " />
-          </label>
+      <details class="info-fold"><summary><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> Enter coordinates</summary>
+        <p class="info-description">Select a precise point on the Moon.</p>
+        <div class="grid grid-cols-2 gap-1.5 mt-2">
+          <label class="flex flex-col gap-0.5"><span class="text-[10px] ink-muted">Latitude (°)</span><input id="lat-input" type="number" step="0.01" min="-90" max="90" class="surface-well border rule square px-2 py-1 mono ink-primary text-xs" /></label>
+          <label class="flex flex-col gap-0.5"><span class="text-[10px] ink-muted">Longitude (°)</span><input id="lon-input" type="number" step="0.01" min="-180" max="180" class="surface-well border rule square px-2 py-1 mono ink-primary text-xs" /></label>
         </div>
-      </div>
+      </details>
     </div>
-
-    <!-- TAB 3: MULTI-POINT PIN COMPARISON (UP TO 3 POINTS: A, B, C) -->
     <div id="tab-compare" class="hidden flex-col gap-2.5 overflow-y-auto pr-0.5">
-      <div class="flex items-center justify-between text-[10px] ink-muted">
-        <span>Side-by-side timeframe averages</span>
-        <button type="button" onclick="pinCurrentLocation()"
-          class="px-2 py-0.5 square wash-earth ui-hover ink-earth border rule-earth font-semibold transition">
-          + Pin Active
-        </button>
-      </div>
-
+      <p class="info-description">Select a point on the Moon, then choose <b>Pin site</b> to compare up to 3 places.</p>
       <div id="compare-cards" class="flex flex-col gap-2"></div>
-
-      <div class="text-[10px] ink-muted surface-well p-2 square border rule leading-relaxed">
-        Tip: Click any point on the 3D Moon or 2D maps and press <strong>+ Pin</strong> to compare up to 3 locations simultaneously.
-      </div>
     </div>
   </aside>
 
   <!-- ======================================================================= -->
   <!-- 4. DOCKED FLIGHT DYNAMICS AND COMMUNICATION TELEMETRY BAY             -->
   <!-- ======================================================================= -->
-  <aside id="right-panel"
-    class="survey-bay bay-right fixed z-20 overflow-y-auto flex flex-col gap-2.5 text-xs transition-transform duration-200">
-    <div class="bay-index"><span>02 / MISSION TELEMETRY</span><span>SIMULATION / UTC</span></div>
-    <!-- Active Site Header + Pin Action -->
-    <div class="flex items-start justify-between gap-2">
-      <div class="min-w-0">
-        <h2 id="site-title" class="font-semibold text-sm ink-primary truncate">Shackleton Rim (Ridge)</h2>
-        <div id="site-subtitle" class="text-[11px] ink-muted mono mt-0.5">-89.45° S, -137.31° W · Elev +1.8 km</div>
-      </div>
-      <button id="pin-active-btn" type="button" onclick="pinCurrentLocation()"
-        class="shrink-0 px-2.5 py-1 square text-[11px] font-semibold wash-earth ui-hover ink-earth border rule-earth transition">
-        + Pin
-      </button>
+  <aside id="right-panel" class="survey-bay bay-right fixed z-20 overflow-y-auto flex flex-col gap-3 text-xs transition-transform duration-200" aria-label="Mission conditions and telemetry">
+    <div class="bay-index"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M8 15l4-5 3 2 4-6"/></svg> Conditions</span><span>LIVE · UTC</span><button type="button" class="panel-close-btn" data-close-panel="right" title="Collapse conditions" aria-label="Collapse conditions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg></button></div>
+    <div class="selected-site-header">
+      <div class="selected-site-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg></div>
+      <div class="min-w-0"><div class="selection-eyebrow">CURRENT LOCATION</div><h2 id="site-title" class="font-semibold text-sm ink-primary truncate">Shackleton Rim (Ridge)</h2><div id="site-subtitle" class="text-[11px] ink-muted mono mt-0.5">89.45° S · 137.31° W</div></div>
     </div>
-
-    <!-- Instantaneous sunlight and end-to-end Earth connectivity -->
-    <div class="grid grid-cols-2 gap-2">
-      <div id="sun-card" class="square p-2 border rule-solar wash-solar transition-colors">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase tracking-wider ink-muted">Sunlight</span>
-          <span id="sun-flux-live" class="text-[10px] mono ink-solar font-semibold">0 W/m²</span>
-        </div>
-        <div id="sun-status" class="font-bold text-sm ink-solar mt-0.5">ILLUMINATED</div>
-        <div id="sun-detail" class="text-[10px] ink-primary mono mt-0.5">El +1.4° (Rim -0.4°)</div>
-        <div id="sun-next" class="text-[10px] ink-solar mono mt-1 pt-1 border-t rule-solar">Sunset in 9.4d</div>
+    <div class="grid grid-cols-2 gap-2 primary-readouts">
+      <div id="sun-card" class="telemetry-cell solar-cell">
+        <div class="readout-heading"><span class="readout-icon ink-solar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span> SUNLIGHT</div>
+        <div id="sun-status" class="readout-status ink-solar">ILLUMINATED</div>
+        <div id="sun-flux-live" class="text-[11px] mono ink-solar font-semibold">0 W/m²</div>
+        <details class="readout-details"><summary>More</summary><div id="sun-detail" class="text-[10px] ink-primary mono mt-1">Solar elevation</div><div id="sun-next" class="text-[10px] ink-muted mono mt-1">Next change</div></details>
       </div>
-
-      <div id="earth-card" class="square p-2 border rule-earth wash-earth transition-colors">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase tracking-wider ink-muted">Earth connection</span>
-          <span id="earth-lib-live" class="text-[10px] mono ink-earth">Lib +4.2°</span>
-        </div>
-        <div id="earth-status" class="font-bold text-sm ink-earth mt-0.5">CHECKING LINK</div>
-        <div id="earth-detail" class="text-[10px] ink-primary mono mt-0.5">El +4.8° (Rim +0.2°)</div>
-        <div id="earth-next" class="text-[10px] ink-earth mono mt-1 pt-1 border-t rule-earth">Clear &gt; 14d</div>
-        <div id="dsn-station-list" class="space-y-1 mt-1.5 pt-1.5 border-t rule-earth" aria-label="DSN station visibility"></div>
+      <div id="earth-card" class="telemetry-cell earth-cell">
+        <div class="readout-heading"><span class="readout-icon ink-earth"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg></span> EARTH LINK</div>
+        <div id="earth-status" class="readout-status ink-earth">CHECKING</div>
+        <div id="earth-lib-live" class="text-[11px] mono ink-earth">Checking route</div>
+        <details class="readout-details"><summary>Stations</summary><div id="earth-detail" class="text-[10px] ink-primary mono mt-1">Connection details</div><div id="earth-next" class="text-[10px] ink-muted mono mt-1">Next change</div><div id="dsn-station-list" class="space-y-1 mt-1.5 pt-1.5 border-t rule-earth" aria-label="DSN station visibility"></div></details>
       </div>
     </div>
-
-    <!-- Live Relay Satellite Constellation Link Card -->
-    <div id="relay-card" class="square p-2 border rule-relay wash-relay transition-colors">
-      <div class="flex items-center justify-between">
-        <span class="text-[10px] uppercase tracking-wider ink-relay font-semibold">[RLY] NASA LCRNS 3.1 · proposed</span>
-        <span id="relay-count-live" class="text-[10px] mono px-1.5 py-0.2 square wash-relay ink-relay border rule-relay">0/5 Linked</span>
-      </div>
-      <div id="relay-status" class="font-semibold text-xs ink-primary mono mt-1 truncate">
-        NASA SV-1 to SV-5 (planned reference)
-      </div>
-      <div id="relay-detail" class="text-[10px] ink-primary mono mt-0.5">
-        Mask ≥5.0° (assumed mask) · Relay needs DSN
-      </div>
-      <div id="lcrns-model-caution" class="text-[9px] ink-relay mt-1" title="The NASA document gives initial states only; these positions use a simplified two-body projection.">NASA 2027-03-01 reference · simplified Kepler projection</div>
-      <details class="mt-1 text-[10px] ink-primary"><summary class="cursor-pointer ink-relay">Satellite positions &amp; link data</summary>
-        <div id="lcrns-live-table" class="mt-1.5 space-y-1 mono" aria-live="off"></div>
+    <div id="relay-card" class="relay-overview telemetry-cell relay-cell">
+      <div class="flex justify-between items-center gap-2"><div class="readout-heading"><span class="readout-icon ink-relay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="m9 12-5-3v6l5-3zm6 0 5-3v6l-5-3M12 9V5m0 10v4"/></svg></span> NASA RELAYS</div><span id="relay-count-live" class="relay-count">0/5 linked</span></div>
+      <details class="readout-details"><summary>Satellite &amp; link details</summary>
+        <div id="relay-status" class="text-[11px] ink-primary mt-1">NASA SV-1 to SV-5</div>
+        <div id="relay-detail" class="text-[10px] ink-muted mt-1">Link analysis</div>
+        <div id="lcrns-model-caution" class="text-[10px] ink-relay mt-1" title="NASA's reference states use simplified propagation here.">Reference model · not live tracking</div>
+        <details class="readout-details mt-2"><summary>All five spacecraft</summary><div id="lcrns-live-table" class="mt-1.5 space-y-1 mono" aria-live="off"></div></details>
       </details>
     </div>
-
-    <!-- Timeframe Selector + Interactive Day-by-Day Scrubber -->
-    <div class="surface-well square p-2.5 border rule space-y-1.5">
-      <div class="flex items-center justify-between">
-        <span class="text-[10px] font-semibold uppercase tracking-wider ink-muted">Timeframe Window</span>
-        <div class="flex surface-well square p-0.5 border rule text-[10px] mono">
-          <button type="button" data-dur="7" class="dur-btn px-1.5 py-0.5 square ink-muted ui-hover-ink">7d</button>
-          <button type="button" data-dur="14" class="dur-btn px-1.5 py-0.5 square fill-inverted ink-void font-semibold">14d</button>
-          <button type="button" data-dur="29.530589" class="dur-btn px-1.5 py-0.5 square ink-muted ui-hover-ink">29.5d</button>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between text-[10px] mono">
-        <span id="sim-utc-readout" class="ink-primary font-medium">2026-11-14 12:00 UTC</span>
-        <span id="sim-offset-readout" class="ink-earth">+0.0d / 14.0d</span>
-      </div>
-
-      <!-- Sunlight, end-to-end Earth connectivity, and relay coverage -->
-      <div class="space-y-1 pt-0.5">
-        <canvas id="window-strip-canvas" width="260" height="24" class="w-full h-[24px] square border rule"></canvas>
-        <input id="time-scrubber" type="range" min="0" max="1" step="0.000001" value="0" aria-label="Scrub through timeframe" class="w-full" />
-      </div>
-
-      <div class="flex justify-between text-[9px] ink-muted">
-        <span class="flex items-center gap-1"><span class="w-2 h-1.5 fill-solar inline-block square"></span>Sun Lit</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-1.5 fill-earth inline-block square"></span>Earth connected</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-1.5 fill-relay inline-block square"></span>Relay → DSN</span>
-      </div>
+    <div class="timeline-panel">
+      <div class="flex items-center justify-between gap-2"><div class="readout-heading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> Time window</div><div class="flex surface-well square p-0.5 border rule text-[10px] mono"><button type="button" data-dur="7" class="dur-btn px-1.5 py-0.5 square ink-muted">7d</button><button type="button" data-dur="14" class="dur-btn px-1.5 py-0.5 square fill-inverted ink-void font-semibold">14d</button><button type="button" data-dur="29.530589" class="dur-btn px-1.5 py-0.5 square ink-muted">29.5d</button></div></div>
+      <div class="flex justify-between items-center text-[10px] mono gap-2 mt-2"><span id="sim-utc-readout" class="ink-primary font-medium">2027-03-01 00:00 UTC</span><span id="sim-offset-readout" class="ink-earth">+0.0d / 14d</span></div>
+      <canvas id="window-strip-canvas" width="260" height="24" class="w-full h-[24px] square border rule mt-2" aria-label="Sunlight, Earth and relay availability over time"></canvas>
+      <input id="time-scrubber" type="range" min="0" max="1" step="0.000001" value="0" aria-label="Scrub simulation time" class="w-full" />
+      <div class="timeline-legend"><span><i class="legend-dot solar"></i>Sun</span><span><i class="legend-dot earth"></i>Earth</span><span><i class="legend-dot relay"></i>Relay</span></div>
     </div>
-
-    <!-- Timeframe Averages & Availability Summary -->
-    <div class="surface-well square p-2.5 border rule space-y-2">
-      <div class="flex items-center justify-between">
-        <span class="text-[10px] font-semibold uppercase tracking-wider ink-muted">Window Averages &amp; Availability</span>
-        <span id="avg-score-badge" class="text-[10px] mono px-1.5 py-0.5 square wash-ok ink-ok border rule-ok">
-          Score 91/100
-        </span>
+    <details class="info-fold" id="coverage-details"><summary><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M8 15l4-5 3 2 4-6"/></svg> Time-window coverage</summary>
+      <div class="flex items-center justify-between gap-1 mt-2"><span class="info-description">Average availability over selected period</span><span id="avg-score-badge" class="source-chip ink-ok">Score —</span></div>
+      <div class="grid grid-cols-2 gap-1.5 text-[11px] mt-2">
+        <div class="data-square"><div class="data-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg> Sunlight</div><div id="stat-sun-avg" class="mono font-bold ink-solar mt-0.5">—</div></div>
+        <div class="data-square"><div class="data-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg> Earth connection</div><div id="stat-earth-avg" class="mono font-bold ink-earth mt-0.5">—</div></div>
+        <div class="data-square"><div class="data-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="m9 12-5-3v6l5-3zm6 0 5-3v6l-5-3M12 9V5m0 10v4"/></svg> Relay coverage</div><div id="stat-relay-avg" class="mono font-bold ink-relay mt-0.5">—</div></div>
+        <div class="data-square"><div class="data-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg> Sun + connection</div><div id="stat-overlap-avg" class="mono font-bold ink-ok mt-0.5">—</div></div>
       </div>
-
-      <div class="grid grid-cols-2 gap-1.5 text-[11px]">
-        <div class="surface-well square p-1.5 border rule">
-          <div class="text-[9px] ink-muted">Avg Sunlight</div>
-          <div id="stat-sun-avg" class="mono font-bold ink-solar mt-0.5">85.0% (286h)</div>
-        </div>
-        <div class="surface-well square p-1.5 border rule">
-          <div class="text-[9px] ink-muted">Earth Connection</div>
-          <div id="stat-earth-avg" class="mono font-bold ink-earth mt-0.5">—</div>
-        </div>
-        <div class="surface-well square p-1.5 border rule">
-          <div class="text-[9px] ink-muted">Relay Coverage</div>
-          <div id="stat-relay-avg" class="mono font-bold ink-relay mt-0.5">98.5% (331h)</div>
-        </div>
-        <div class="surface-well square p-1.5 border rule">
-          <div class="text-[9px] ink-muted">Sun + Comms Overlap</div>
-          <div id="stat-overlap-avg" class="mono font-bold ink-ok mt-0.5">85.0% (286h)</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 360° Local Terrain Horizon Elevation Mini-Plot -->
-    <div class="surface-well square p-2 border rule">
-      <div class="flex justify-between text-[10px] ink-muted mb-1">
-        <span>360° Local Terrain Horizon</span>
-        <span class="mono"><span class="ink-solar">[SUN] Sun</span> · <span class="ink-earth">[DSN] Earth</span> · <span class="ink-relay">[RLY] Sat</span></span>
-      </div>
-      <canvas id="horizon-canvas" width="260" height="66" class="w-full h-[66px] square"></canvas>
-      <div class="flex justify-between text-[9px] mono ink-muted mt-0.5">
-        <span>0°N</span>
-        <span>90°E</span>
-        <span>180°S</span>
-        <span>270°W</span>
-        <span>360°</span>
-      </div>
-    </div>
+    </details>
+    <details class="info-fold" id="terrain-details"><summary><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m2 20 7-12 4 6 3-4 6 10H2Z"/></svg> Local terrain horizon</summary>
+      <p class="info-description mt-1">Shows nearby skyline and where the Sun, Earth or relays appear above it.</p>
+      <div class="flex justify-between text-[10px] ink-muted mt-2"><span>360° horizon</span><span class="ink-solar">Sun</span><span class="ink-earth">Earth</span><span class="ink-relay">Sat</span></div>
+      <canvas id="horizon-canvas" width="260" height="66" class="w-full h-[66px] square mt-1" aria-label="Local terrain horizon profile"></canvas>
+      <div class="flex justify-between text-[9px] mono ink-muted mt-0.5"><span>0°N</span><span>90°E</span><span>180°S</span><span>270°W</span><span>360°</span></div>
+    </details>
+    <p class="model-hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7h.01"/></svg> Modelled conditions · NASA LCRNS reference, not real-time spacecraft tracking.</p>
   </aside>
 
   <!-- ======================================================================= -->
@@ -643,42 +615,36 @@
   <div id="help-modal" class="fixed inset-0 z-40 modal-screen  hidden items-center justify-center p-4">
     <div class="instrument-panel square max-w-xl w-full max-h-[85vh] overflow-y-auto p-5 text-xs leading-relaxed ink-primary border rule">
       <div class="flex items-center justify-between pb-3 border-b rule">
-        <h3 class="text-base font-bold ink-primary">Earth-Moon Orbital Mechanics, Data &amp; Relay Satellites</h3>
+        <h3 class="text-base font-bold ink-primary"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7h.01"/></svg> How this simulation works</h3>
         <button id="close-help" type="button"
           class="px-2.5 py-1 square surface-panel ui-hover ink-primary font-medium transition">
           Close
         </button>
       </div>
 
-      <div class="space-y-3.5 mt-3.5">
-        <div>
-          <h4 class="font-semibold ink-earth uppercase tracking-wider text-[11px]">
-            1. 3D Earth-Moon Orbital Frame &amp; Tidal Locking
-          </h4>
+      <div class="space-y-2 mt-3.5 help-folds">
+        <details class="info-fold">
+          <summary class="help-section-title ink-earth">Moon motion &amp; orientation</summary>
           <p class="ink-primary mt-1">
             · <strong>Geocentric Ecliptic Frame:</strong> Earth sits at the scene origin with its <span class="mono ink-primary">23.44°</span> axial obliquity and UTC sidereal rotation, while the Sun illuminates the Earth-Moon system along the true ecliptic solar vector.<br/>
             · <strong>Moon Orbit &amp; Tidal Locking:</strong> The Moon revolves around Earth along its <span class="mono ink-primary">5.145°</span> inclined orbit (<span class="mono ink-primary">27.32d</span> sidereal / <span class="mono ink-primary">29.53d</span> synodic phase cycle). Its <span class="mono ink-primary">MOON_ME</span> prime meridian (<span class="mono ink-primary">0° Lon</span>) remains tidally locked toward Earth while exhibiting real optical libration (<span class="mono ink-primary">±7.6°</span> longitude, <span class="mono ink-primary">±6.68°</span> latitude), producing authentic lunar phases as you scrub or press Play.
           </p>
-        </div>
+        </details>
 
-        <div>
-          <h4 class="font-semibold ink-solar uppercase tracking-wider text-[11px]">
-            2. NASA Lunar Datasets &amp; Airless Horizon Model
-          </h4>
+        <details class="info-fold">
+          <summary class="help-section-title ink-solar">Sunlight &amp; terrain</summary>
           <p class="ink-primary mt-1">
             · <strong>Surface Imagery &amp; Sites:</strong> NASA SVS LRO/LOLA <span class="mono ink-primary">lroc_color_2k.jpg</span> and IAU <span class="mono ink-primary">MOON_ME</span> coordinates for NASA Artemis III candidate sites, LOLA South Pole catalogs, and Apollo/CLPS/Chandrayaan/Chang’e missions.<br/>
             · <strong>Airless Line-of-Sight:</strong> Visibility uses a 72-sector (<span class="mono">5°</span>) approximate terrain horizon based on synthetic topography. It is NOT a loaded NASA LOLA elevation grid. Solar irradiance is computed for a horizontal surface as 1361 × max(0, sin(solar elevation)) W/m² when the Sun clears the horizon; tilted sun-tracking arrays receive a different flux.
           </p>
-        </div>
+        </details>
 
-        <div>
-          <h4 class="font-semibold ink-earth uppercase tracking-wider text-[11px]">3. Three DSN Ground Station Links</h4>
+        <details class="info-fold">
+          <summary class="help-section-title ink-earth">Earth stations &amp; links</summary>
           <p class="ink-primary mt-1">The Madrid (Spain), Goldstone (USA), and Canberra (Australia) complexes are Earth-fixed at their geographic coordinates, rotating only with Earth. Each direct line terminates at its station rather than at Earth's center. The lunar relay orbital planes are modeled in Moon-centered ICRF coordinates, not in the rotating lunar surface frame. Each orbiting relay also checks an independent satellite-to-station straight line against Earth and Moon occultation; a lunar-base-to-relay hop counts as an Earth connection only if it has at least one such downlink. The main Earth Connection status combines direct base-to-DSN and base-to-relay-to-DSN paths; DTE refers only to the former. The complexes are checked independently. A direct link exists only when Earth clears the selected lunar location's modeled terrain horizon <strong>and</strong> the Moon is above that DSN station's geometric horizon at the simulated UTC time. Link beams and connection statistics use this same rule. Ground-station availability, actual antenna pointing, weather, terrain at the station, radio link budget, and mission scheduling are not modeled. Lunar positions use a low-precision analytical ephemeris.</p>
-        </div>
-        <div>
-          <h4 class="font-semibold ink-relay uppercase tracking-wider text-[11px]">
-            4. NASA LCRNS 3.1 Proposed Reference Constellation
-          </h4>
+        </details>
+        <details class="info-fold">
+          <summary class="help-section-title ink-relay">NASA relay spacecraft</summary>
           <p class="ink-primary mt-1">
             · <strong>NASA government reference, NOT launched or operational:</strong> The five proposed vehicles SV-1 to SV-5 are initialized from NASA LCRNS Reference Constellation 3.1, Table 2 (Moon-centered ICRF position km and velocity km/s) at <span class="mono ink-primary">2027-03-01 00:00 UTC</span>. The exact Table 1 Keplerian elements (Moon Principal Axis frame) appear below. The spacecraft have ~30-hour ELFO periods.<br/>
             · <strong>Propagation accuracy:</strong> The interactive HTML derives an inertial two-body Keplerian orbit from each NASA state. It does <em>not</em> integrate NASA's recommended DE421 / lunar GRGM-900c 25×25 gravity / Sun + Venus + Earth + Mars + Jupiter + Saturn / solar radiation pressure model. Positions away from the reference epoch and all relay link availability are <strong>illustrative predictions, not NASA-validated ephemerides</strong>. The lunar orientation, terrain horizon, and DSN geometry are also approximate.<br/>
@@ -689,16 +655,14 @@
           <details class="mt-2"><summary class="cursor-pointer ink-relay">Exact NASA Table 2 state vectors (ICRF, 2027-03-01 UTC)</summary>
             <div class="overflow-x-auto mt-1"><table class="w-full text-[10px] mono whitespace-nowrap"><thead><tr class="ink-relay"><th>SV</th><th>X km</th><th>Y km</th><th>Z km</th><th>Vx km/s</th><th>Vy km/s</th><th>Vz km/s</th></tr></thead><tbody id="nasa-cartesian-states"></tbody></table></div>
           </details>
-        </div>
+        </details>
 
-        <div>
-          <h4 class="font-semibold ink-ok uppercase tracking-wider text-[11px]">
-            5. How to Independently Verify Results
-          </h4>
+        <details class="info-fold">
+          <summary class="help-section-title ink-ok">Sources &amp; verification</summary>
           <p class="ink-primary mt-1">
             · <strong>NASA JPL Horizons (<span class="mono ink-earth">ssd.jpl.nasa.gov/horizons</span>):</strong> Set Target to <span class="mono">Sun [10]</span> or <span class="mono">Earth [399]</span>, Observer to <span class="mono">@301</span> (Moon) at your pin’s Lat/Lon, and request Table #4 (Apparent Azimuth &amp; Elevation).
           </p>
-        </div>
+        </details>
       </div>
     </div>
   </div>
@@ -826,10 +790,7 @@
       moonImageData: null,
       moonImg: null,
       activeWindowCache: null,
-      pinnedPoints: [
-        { name: "Shackleton Rim (Ridge)", lat: -89.45, lon: -137.31 },
-        { name: "Mons Mouton Plateau", lat: -84.95, lon: 31.00 }
-      ]
+      pinnedPoints: []
     };
 
     // =========================================================================
@@ -1325,27 +1286,7 @@
 
       evaluated.sort((a, b) => b.stats.score - a.stats.score);
 
-      let bestSunId = evaluated.reduce((best, cur) => (cur.stats.sunPct > best.stats.sunPct ? cur : best), evaluated[0]).site.id;
-      let bestEarthId = evaluated.reduce((best, cur) => (cur.stats.anyCommsPct > best.stats.anyCommsPct ? cur : best), evaluated[0]).site.id;
-
-      return evaluated.map((item, idx) => {
-        let badge = "Balanced Site";
-        let badgeCls = "surface-panel ink-primary rule";
-        if (idx === 0) {
-          badge = "[PRI] Top Overall";
-          badgeCls = "wash-ok ink-ok rule-ok";
-        } else if (item.site.id === bestSunId) {
-          badge = "[SUN] Peak Solar";
-          badgeCls = "wash-solar ink-solar rule-solar";
-        } else if (item.site.id === bestEarthId) {
-          badge = "[DSN] Best Comms";
-          badgeCls = "wash-earth ink-earth rule-earth";
-        } else if (item.site.id === "shackleton_floor") {
-          badge = "[PSR] Cryo PSR";
-          badgeCls = "bg-indigo-500/20 text-indigo-300 border-indigo-500/40";
-        }
-        return { ...item, badge, badgeCls };
-      });
+      return evaluated; // Keep rankings and all metrics; omit visual best/balanced labels.
     }
 
     // =========================================================================
@@ -2068,7 +2009,7 @@
 
     function toggleSatelliteOrbits() {
       state.showRelayOrbits = !state.showRelayOrbits;
-      document.getElementById("orbits-btn-label").textContent = state.showRelayOrbits ? "Relay Sats: ON" : "Relay Sats: OFF";
+      document.getElementById("orbits-btn-label").textContent = state.showRelayOrbits ? "Satellites: ON" : "Satellites: OFF";
       if (satOrbitGroup) satOrbitGroup.visible = state.showRelayOrbits;
       const cur = getCurrentSample();
       if (cur) update3DRelaysAndLinks(cur.sample);
@@ -2077,7 +2018,7 @@
 
     function toggleDteBeam() {
       state.showDteBeam = !state.showDteBeam;
-      document.getElementById("dte-beam-label").textContent = state.showDteBeam ? "DSN Links: ON" : "DSN Links: OFF";
+      document.getElementById("dte-beam-label").textContent = state.showDteBeam ? "DSN links: ON" : "DSN links: OFF";
       const cur = getCurrentSample();
       if (cur) update3DRelaysAndLinks(cur.sample);
     }
@@ -2184,6 +2125,14 @@
       );
       activeCore.position.copy(activePos);
       pinGroup.add(activeCore);
+      // Subtle selection ring, attached to lunar surface (presentation only).
+      const activeRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.039, 0.048, 48),
+        new THREE.MeshBasicMaterial({ color: 0xd99b26, side: THREE.DoubleSide, depthTest: true })
+      );
+      activeRing.position.copy(latLonToVec3(state.lat,state.lon,1.021));
+      activeRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), activePos.clone().normalize());
+      pinGroup.add(activeRing);
     }
 
     // =========================================================================
@@ -2287,7 +2236,7 @@
         // Latitude rings (-85°, -80°, -75°, -70°, -65°)
         ctx2D.strokeStyle = "rgba(150,142,128,0.24)";
         ctx2D.lineWidth = 1;
-        ctx2D.font = "10px monospace";
+        ctx2D.font = "10px Roboto";
         ctx2D.fillStyle = "rgba(150,142,128,0.75)";
         for (const latRing of [-85, -80, -75, -70, -65]) {
           const rr = ((latRing + 90) / maxColat) * R;
@@ -2325,7 +2274,7 @@
         ctx2D.setLineDash([]);
 
         ctx2D.fillStyle = "#5c9ead";
-        ctx2D.font = "600 11px monospace";
+        ctx2D.font = "600 11px Roboto";
         ctx2D.textAlign = "center";
         ctx2D.fillText("0° Prime Meridian (Toward Earth)", cx, cy - R - 10);
         ctx2D.textAlign = "left";
@@ -2344,7 +2293,7 @@
           ctx2D.fill();
           if (tag) {
             ctx2D.fillStyle = "#e6e0d2";
-            ctx2D.font = "bold 10px monospace";
+            ctx2D.font = "bold 10px Roboto";
             ctx2D.fillText(tag, x + 7, y + 3);
           }
         };
@@ -2355,6 +2304,7 @@
           plotPolar(p.lat, p.lon, c.hex, 5.5, `Pin ${c.key}`);
         });
         plotPolar(state.lat, state.lon, "#e6e0d2", 6.5, null);
+        { const pt = polarXY(state.lat,state.lon); ctx2D.strokeStyle = "#d99b26"; ctx2D.lineWidth=2.5; ctx2D.beginPath(); ctx2D.arc(pt.x,pt.y,12,0,Math.PI*2); ctx2D.stroke(); }
 
         if (state.showRelayOrbits && sample.allRelays) {
           const cursorPos = state.lat <= -65 ? polarXY(state.lat, state.lon) : null;
@@ -2376,7 +2326,7 @@
             ctx2D.arc(satPos.x, satPos.y, 4.5, 0, Math.PI * 2);
             ctx2D.fill();
             ctx2D.fillStyle = "#d4b483";
-            ctx2D.font = "10px monospace";
+            ctx2D.font = "10px Roboto";
             ctx2D.fillText(`${rel.id}`, satPos.x + 6, satPos.y + 3);
           });
         }
@@ -2430,7 +2380,7 @@
           ctx2D.fill();
           if (tag) {
             ctx2D.fillStyle = "#e6e0d2";
-            ctx2D.font = "bold 10px monospace";
+            ctx2D.font = "bold 10px Roboto";
             ctx2D.fillText(tag, x + 7, y + 3);
           }
         };
@@ -2441,6 +2391,7 @@
           plotGlobal(p.lat, p.lon, c.hex, 5.5, `Pin ${c.key}`);
         });
         plotGlobal(state.lat, state.lon, "#e6e0d2", 6.5, null);
+        { const pt = globalXY(state.lat,state.lon); ctx2D.strokeStyle = "#d99b26"; ctx2D.lineWidth=2.5; ctx2D.beginPath(); ctx2D.arc(pt.x,pt.y,12,0,Math.PI*2); ctx2D.stroke(); }
 
         if (state.showRelayOrbits && sample.allRelays) {
           const cursorPos = globalXY(state.lat, state.lon);
@@ -2461,7 +2412,7 @@
             ctx2D.arc(satPos.x, satPos.y, 4.5, 0, Math.PI * 2);
             ctx2D.fill();
             ctx2D.fillStyle = "#d4b483";
-            ctx2D.font = "10px monospace";
+            ctx2D.font = "10px Roboto";
             ctx2D.fillText(`${rel.id}`, satPos.x + 6, satPos.y + 3);
           });
         }
@@ -2499,72 +2450,55 @@
     // =========================================================================
     // 7. UI RENDERING: RECOMMENDATIONS, COMPARISON CARDS, CHARTS & TELEMETRY
     // =========================================================================
+    // Small inline icons, consistent with the persistent SVG instrument controls.
+    const UI_ICON_SUN = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`;
+    const UI_ICON_EARTH = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3.7 9h16.6M4 15h16M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18"/></svg>`;
+    const UI_ICON_PIN = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
     function renderRecommendationsList() {
       const container = document.getElementById("recommend-list");
       const recs = computeSouthPoleRecommendations();
-      container.innerHTML = recs
-        .map(({ site, stats, badge, badgeCls }) => {
-          const isSelected = Math.abs(state.lat - site.lat) < 0.05 && Math.abs(state.lon - site.lon) < 0.05;
-          const isPinned = state.pinnedPoints.some(
-            p => Math.abs(p.lat - site.lat) < 0.05 && Math.abs(p.lon - site.lon) < 0.05
-          );
-          return `
-          <div onclick="selectCoordinates(${site.lat}, ${site.lon}, '${site.name.replace(/'/g, "\\'")}')"
-            class="p-2 square border transition cursor-pointer ${
-              isSelected
-                ? "wash-earth rule-earth"
-                : "surface-well ui-hover rule"
-            }">
-            <div class="flex items-center justify-between gap-1.5">
-              <span class="font-semibold ink-primary truncate">${site.name}</span>
-              <span class="text-[9px] mono px-1.5 py-0.5 square border shrink-0 ${badgeCls}">${badge}</span>
-            </div>
-            <div class="flex items-center justify-between mt-1.5 text-[10px] mono">
-              <div class="flex items-center gap-2">
-                <span class="ink-solar">[SUN] ${Math.round(stats.sunPct)}%</span>
-                <span class="ink-earth">[DSN] ${Math.round(stats.anyCommsPct)}%</span>
-                <span class="ink-relay">[RLY] ${Math.round(stats.relayPct)}%</span>
-              </div>
-              <button type="button"
-                onclick="event.stopPropagation(); pinLocation(${site.lat}, ${site.lon}, '${site.name.replace(/'/g, "\\'")}')"
-                class="px-1.5 py-0.5 square ${
-                  isPinned
-                    ? "wash-ok ink-ok border rule-ok"
-                    : "surface-panel ui-hover ink-primary ui-hover-ink border rule"
-                } transition">
-                ${isPinned ? "Pinned" : "+ Pin"}
-              </button>
-            </div>
+      container.innerHTML = recs.map(({site, stats}) => {
+        const selected = Math.abs(state.lat - site.lat) < .05 && Math.abs(state.lon - site.lon) < .05;
+        return `<button type="button" data-site="${site.id}" class="site-row ${selected ? 'is-selected' : ''}">
+          <div class="site-row-main"><span class="site-row-name">${site.name}</span>${selected ? '<span class="active-caption">SELECTED</span>' : ''}</div>
+          <div class="site-meters">
+            <span class="meter" title="Sunlight availability"><span class="ink-solar">${UI_ICON_SUN}</span><span class="meter-track"><i style="width:${Math.round(stats.sunPct)}%;background:var(--pigment-solar)"></i></span><b>${Math.round(stats.sunPct)}%</b></span>
+            <span class="meter" title="Connection to Earth"><span class="ink-earth">${UI_ICON_EARTH}</span><span class="meter-track"><i style="width:${Math.round(stats.anyCommsPct)}%;background:var(--pigment-earth)"></i></span><b>${Math.round(stats.anyCommsPct)}%</b></span>
           </div>
-        `;
-        })
-        .join("");
+        </button>`;
+      }).join("");
+      container.querySelectorAll("[data-site]").forEach(btn => {
+        const site = SITES.find(s => s.id === btn.dataset.site);
+        if (site) btn.onclick = () => selectCoordinates(site.lat, site.lon, site.name);
+      });
     }
 
     function renderAllSitesList() {
       const list = document.getElementById("site-list");
       list.innerHTML = "";
-      for (const s of SITES) {
-        const active = Math.abs(state.lat - s.lat) < 0.05 && Math.abs(state.lon - s.lon) < 0.05;
+      for (const site of SITES) {
+        const active = Math.abs(state.lat-site.lat)<.05 && Math.abs(state.lon-site.lon)<.05;
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = `text-left px-2.5 py-1.5 square transition flex items-center justify-between ${
-          active
-            ? "wash-earth border rule-earth ink-primary"
-            : "ui-hover ink-primary border border-transparent"
-        }`;
-        btn.innerHTML = `<span class="truncate font-medium">${s.name}</span><span class="text-[10px] ink-muted ml-1 shrink-0">${s.tag}</span>`;
-        btn.onclick = () => selectCoordinates(s.lat, s.lon, s.name);
+        btn.className = `site-row site-row-simple ${active ? 'is-selected' : ''}`;
+        const name = document.createElement("span");
+        name.className = "site-row-name";
+        name.textContent = site.name;
+        const tag = document.createElement("span");
+        tag.className = "site-row-tag";
+        tag.textContent = active ? "SELECTED" : site.tag;
+        btn.append(name,tag);
+        btn.onclick = () => selectCoordinates(site.lat, site.lon, site.name);
         list.appendChild(btn);
       }
     }
 
     function renderComparisonCards() {
       const container = document.getElementById("compare-cards");
-      document.getElementById("compare-tab-btn").textContent = `Compare (${state.pinnedPoints.length})`;
+      document.getElementById("compare-tab-btn").innerHTML = `${UI_ICON_PIN} Pins (${state.pinnedPoints.length})`;
 
       if (state.pinnedPoints.length === 0) {
-        container.innerHTML = `<div class="ink-muted text-center py-4">No pinned locations yet. Click + Pin to compare sites.</div>`;
+        container.innerHTML = `<div class="ink-muted text-center py-4">No sites pinned yet. Select any lunar location, then use Pin site.</div>`;
         return;
       }
 
@@ -2602,9 +2536,9 @@
             <div class="flex items-center justify-between text-[10px] mono ink-muted">
               <span>${pin.lat.toFixed(2)}°, ${pin.lon.toFixed(2)}°E</span>
               <span>
-                <span class="${sunLitNow ? "ink-solar" : "ink-muted"}">${sunLitNow ? "[SUN] Lit" : "[SHD] Shadow"}</span> ·
-                <span class="${commsNow ? "ink-earth" : "ink-warn"}">${commsNow ? "[DSN] Earth" : "× Earth"}</span> ·
-                <span class="${relaysNow.length > 0 ? "ink-relay" : "ink-muted"}">[RLY] ${relaysNow.length}</span>
+                <span class="${sunLitNow ? "ink-solar" : "ink-muted"}">${sunLitNow ? "Sunlit" : "Shadow"}</span> ·
+                <span class="${commsNow ? "ink-earth" : "ink-warn"}">${commsNow ? "Earth linked" : "No Earth link"}</span> ·
+                <span class="${relaysNow.length > 0 ? "ink-relay" : "ink-muted"}">Relays ${relaysNow.length}</span>
               </span>
             </div>
 
@@ -2756,10 +2690,10 @@
       const sunCard = document.getElementById("sun-card");
       const sunStatus = document.getElementById("sun-status");
       sunStatus.textContent = sample.sunLit ? "ILLUMINATED" : "IN SHADOW";
-      sunStatus.className = `font-bold text-sm mt-0.5 ${sample.sunLit ? "ink-solar" : "ink-muted"}`;
+      sunStatus.className = `readout-status ${sample.sunLit ? "ink-solar" : "ink-muted"}`;
       sunCard.className = sample.sunLit
-        ? "square p-2 border rule-solar wash-solar transition-colors"
-        : "square p-2 border rule surface-well transition-colors";
+        ? "telemetry-cell solar-cell"
+        : "telemetry-cell solar-cell is-inactive";
       document.getElementById("sun-flux-live").textContent = `${sample.flux} W/m²`;
       document.getElementById("sun-detail").textContent = `El ${sample.sun.el >= 0 ? "+" : ""}${sample.sun.el.toFixed(1)}° (Rim ${sample.sunHor.toFixed(1)}°)`;
       document.getElementById("sun-next").textContent = getNextTransitionInCache(cache, idx, "sunLit");
@@ -2771,11 +2705,11 @@
       const mode = sample.earthLit && sample.relayLit ? "Direct + relay"
         : sample.earthLit ? "Direct to DSN"
         : sample.relayLit ? "Via relay" : "No route";
-      earthStatus.textContent = sample.anyComms ? "CONNECTED TO EARTH" : "NO EARTH CONNECTION";
-      earthStatus.className = `font-bold text-sm mt-0.5 ${sample.anyComms ? "ink-earth" : "ink-warn"}`;
+      earthStatus.textContent = sample.anyComms ? "CONNECTED" : "NO CONNECTION";
+      earthStatus.className = `readout-status ${sample.anyComms ? "ink-earth" : "ink-warn"}`;
       earthCard.className = sample.anyComms
-        ? "square p-2 border rule-earth wash-earth transition-colors"
-        : "square p-2 border rule-warn wash-warn transition-colors";
+        ? "telemetry-cell earth-cell"
+        : "telemetry-cell earth-cell is-alert";
       document.getElementById("earth-lib-live").textContent = mode;
       document.getElementById("earth-detail").textContent =
         `${sample.dsn.visible.length} direct station(s) · ${sample.linkedRelays.length} linked relay(s)`;
@@ -2812,12 +2746,12 @@
         ? "NASA reference epoch · Table 2 initial states"
         : `Kepler-only estimate · ${daysFromNASA.toFixed(1)}d from NASA epoch (not tracked data)`;
       if (linkedRelays.length > 0) {
-        relayCard.className = "square p-2 border rule-relay wash-relay transition-colors";
+        relayCard.className = "relay-overview telemetry-cell relay-cell";
         document.getElementById("relay-status").textContent = linkedRelays
           .map(r => `${r.id} → ${r.dsnLinks.map(l => l.stationName).join('/')}`)
           .join(" · ");
       } else {
-        relayCard.className = "telemetry-cell relay-cell is-inactive";
+        relayCard.className = "relay-overview telemetry-cell relay-cell is-inactive";
         document.getElementById("relay-status").textContent = visRelays.length
           ? `${visRelays.length} satellite(s) overhead; no Earth downlink`
           : "No Relay Above 5.0° Mask";
@@ -2841,13 +2775,48 @@
 
       drawWindowTimelineStrip();
       drawHorizonPlot(cache.profile, sample.sun, sample.earth, visRelays);
-      renderComparisonCards();
+      if (state.leftTab === "compare") renderComparisonCards();
       render2D();
     }
 
     // =========================================================================
     // 9. INTERACTION HANDLERS (COORDS, PINNING, PLAYBACK, TABS)
     // =========================================================================
+    function updateBottomPins() {
+      const legend = document.getElementById("bottom-pin-legend");
+      if (!legend) return;
+      legend.classList.toggle("hidden", state.pinnedPoints.length === 0);
+      legend.innerHTML = state.pinnedPoints.map((pin,idx) => {
+        const c = PIN_COLORS[idx];
+        return `<button type="button" class="rail-pin" data-rail-pin="${idx}" title="Go to ${pin.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" aria-label="View pinned site ${c.key}"><i style="background:${c.hex}"></i>Pin ${c.key}</button>`;
+      }).join("");
+    }
+
+    function showSelectedSiteActions() {
+      document.getElementById("site-selection-popover").classList.remove("hidden");
+      document.getElementById("selection-popover-title").textContent = state.name;
+      const ns = Math.abs(state.lat).toFixed(2) + '°' + (state.lat >= 0 ? 'N' : 'S');
+      const ew = Math.abs(state.lon).toFixed(2) + '°' + (state.lon >= 0 ? 'E' : 'W');
+      document.getElementById("selection-popover-coords").textContent = `${ns} · ${ew}`;
+      document.getElementById("active-site-tag-name").textContent = state.name;
+    }
+
+    // Keep the selection label aligned with the actual marker in the 3D viewport.
+    function updateSelectedSiteTag3D() {
+      const tag = document.getElementById("active-site-tag");
+      if (state.view !== "globe" || !moonSystemGroup || !camera || !moonMesh) { tag.classList.add("hidden"); return; }
+      moonSystemGroup.updateMatrixWorld(true);
+      const pos = moonSystemGroup.localToWorld(latLonToVec3(state.lat, state.lon, 1.065));
+      const center = moonSystemGroup.getWorldPosition(new THREE.Vector3());
+      if (sphereOccludesCameraRay(camera.position, pos, center, 0.997)) { tag.classList.add("hidden"); return; }
+      const screen = pos.clone().project(camera);
+      if (screen.z > 1 || Math.abs(screen.x)>1 || Math.abs(screen.y)>1) { tag.classList.add("hidden"); return; }
+      const x = (screen.x*.5+.5)*innerWidth, y = (-screen.y*.5+.5)*innerHeight;
+      tag.style.left = `${x}px`;
+      tag.style.top = `${y - 14}px`;
+      tag.classList.remove("hidden");
+    }
+
     function selectCoordinates(lat, lon, customName) {
       state.lat = Math.max(-90, Math.min(90, lat));
       state.lon = ((lon + 540) % 360) - 180;
@@ -2855,6 +2824,7 @@
       document.getElementById("lat-input").value = state.lat.toFixed(2);
       document.getElementById("lon-input").value = state.lon.toFixed(2);
       rebuildActiveWindow();
+      showSelectedSiteActions();
     }
 
     function pinLocation(lat, lon, name) {
@@ -2864,6 +2834,7 @@
       if (existsIdx >= 0) {
         showToast(`${name} is already pinned (Pin ${PIN_COLORS[existsIdx].key})`);
         setLeftTab("compare");
+        document.getElementById("site-selection-popover").classList.add("hidden");
         return;
       }
       if (state.pinnedPoints.length >= 3) {
@@ -2875,7 +2846,9 @@
       rebuild3DPins();
       renderRecommendationsList();
       renderComparisonCards();
+      updateBottomPins();
       render2D();
+      document.getElementById("site-selection-popover").classList.add("hidden");
     }
 
     function pinCurrentLocation() {
@@ -2887,6 +2860,7 @@
       rebuild3DPins();
       renderRecommendationsList();
       renderComparisonCards();
+      updateBottomPins();
       render2D();
     }
 
@@ -2902,11 +2876,11 @@
       const icon = document.getElementById("play-icon");
       const label = document.getElementById("play-label");
       if (state.isPlaying) {
-        icon.textContent = "II";
+        icon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>`;
         label.textContent = "Pause";
         btn.className = "px-2.5 py-1 square font-semibold fill-solar ui-hover ink-void flex items-center gap-1 transition";
       } else {
-        icon.textContent = ">";
+        icon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg>`;
         label.textContent = "Play";
         btn.className = "px-2.5 py-1 square font-semibold fill-inverted ui-hover ink-void flex items-center gap-1 transition";
       }
@@ -2987,6 +2961,7 @@
       if (state.view === "globe" && renderer) {
         if (controls) controls.update();
         updateSatelliteLabels3D();
+        updateSelectedSiteTag3D();
         renderer.render(scene, camera);
       }
     }
@@ -3086,20 +3061,35 @@
           }
         };
 
-        // Mobile Drawer Toggles
-        let leftVisible = window.innerWidth >= 768;
-        let rightVisible = window.innerWidth >= 768;
-        if (!leftVisible) document.getElementById("left-panel").style.transform = "translateX(-115%)";
-        if (!rightVisible) document.getElementById("right-panel").style.transform = "translateX(115%)";
-
-        document.getElementById("toggle-left-btn").onclick = () => {
-          leftVisible = !leftVisible;
-          document.getElementById("left-panel").style.transform = leftVisible ? "translateX(0)" : "translateX(-115%)";
+        // Both survey bays are retractable at every viewport width.
+        const sideVisibility = {
+          left: window.innerWidth >= 768,
+          right: window.innerWidth >= 768
         };
-        document.getElementById("toggle-right-btn").onclick = () => {
-          rightVisible = !rightVisible;
-          document.getElementById("right-panel").style.transform = rightVisible ? "translateX(0)" : "translateX(115%)";
-        };
+        function setSidebarVisible(side, visible) {
+          sideVisibility[side] = visible;
+          const el = document.getElementById(side + "-panel");
+          el.style.transform = visible ? "translateX(0)" : (side === "left" ? "translateX(-105%)" : "translateX(105%)");
+          const toggle = document.getElementById("toggle-" + side + "-btn");
+          toggle.setAttribute("aria-expanded", String(visible));
+          toggle.classList.toggle("is-open",visible);
+          el.setAttribute("aria-hidden",String(!visible));
+          el.inert = !visible;
+        }
+        setSidebarVisible("left",sideVisibility.left);
+        setSidebarVisible("right",sideVisibility.right);
+        ["left","right"].forEach(side => {
+          document.getElementById("toggle-"+side+"-btn").onclick = () => setSidebarVisible(side,!sideVisibility[side]);
+          document.querySelector(`[data-close-panel="${side}"]`).onclick = () => setSidebarVisible(side,false);
+        });
+        document.getElementById("selection-dismiss-btn").onclick = () => document.getElementById("site-selection-popover").classList.add("hidden");
+        document.getElementById("bottom-pin-legend").addEventListener("click", e => {
+          const pinBtn = e.target.closest("[data-rail-pin]");
+          if (!pinBtn) return;
+          const pin = state.pinnedPoints[Number(pinBtn.dataset.railPin)];
+          if (pin) selectCoordinates(pin.lat,pin.lon,pin.name);
+        });
+        updateBottomPins();
 
         // Exact NASA Table 1 reference elements, in Moon Principal Axis coordinates.
         document.getElementById("nasa-orbit-parameters").innerHTML = RELAY_SATELLITES.map(sat =>
@@ -3117,6 +3107,7 @@
 
         // Initialize 3D Stage & Run First Evaluation
         init3D();
+        document.getElementById("active-site-tag-name").textContent = state.name;
         rebuildActiveWindow();
 
         state.lastFrameMs = performance.now();
