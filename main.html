@@ -346,15 +346,19 @@
     <!-- Live Relay Satellite Constellation Link Card -->
     <div id="relay-card" class="rounded-xl p-2 border border-violet-400/35 bg-violet-500/10 transition-colors">
       <div class="flex items-center justify-between">
-        <span class="text-[10px] uppercase tracking-wider text-violet-300 font-semibold">🛰 Relay Satellites (LunaNet / LCRNS)</span>
-        <span id="relay-count-live" class="text-[10px] mono px-1.5 py-0.2 rounded bg-violet-500/20 text-violet-200 border border-violet-400/30">2/4 Overhead</span>
+        <span class="text-[10px] uppercase tracking-wider text-violet-300 font-semibold">🛰 NASA LCRNS 3.1 · proposed</span>
+        <span id="relay-count-live" class="text-[10px] mono px-1.5 py-0.2 rounded bg-violet-500/20 text-violet-200 border border-violet-400/30">0/5 Linked</span>
       </div>
       <div id="relay-status" class="font-semibold text-xs text-white mono mt-1 truncate">
-        LCRNS-1 (+64.2°) · Pathfinder (+41.8°)
+        NASA SV-1 to SV-5 (planned reference)
       </div>
       <div id="relay-detail" class="text-[10px] text-slate-300 mono mt-0.5">
-        Mask ≥5.0° · Relay needs DSN downlink
+        Mask ≥5.0° (assumed mask) · Relay needs DSN
       </div>
+      <div id="lcrns-model-caution" class="text-[9px] text-violet-200/80 mt-1" title="The NASA document gives initial states only; these positions use a simplified two-body projection.">NASA 2027-03-01 reference · simplified Kepler projection</div>
+      <details class="mt-1 text-[10px] text-slate-300"><summary class="cursor-pointer text-violet-300">Satellite positions &amp; link data</summary>
+        <div id="lcrns-live-table" class="mt-1.5 space-y-1 mono" aria-live="off"></div>
+      </details>
     </div>
 
     <!-- Timeframe Selector + Interactive Day-by-Day Scrubber -->
@@ -468,20 +472,27 @@
 
         <div>
           <h4 class="font-semibold text-sky-300 uppercase tracking-wider text-[11px]">3. Three DSN Ground Station Links</h4>
-          <p class="text-slate-300 mt-1">The Madrid (Spain), Goldstone (USA), and Canberra (Australia) complexes are Earth-fixed at their geographic coordinates, rotating only with Earth. Each direct line terminates at its station rather than at Earth's center. The lunar relay orbital planes remain fixed in a Moon-centered inertial frame instead of rotating with the tidally locked lunar surface. Each orbiting relay also checks an independent satellite-to-station straight line against Earth and Moon occultation; a lunar-base-to-relay hop counts as an Earth connection only if it has at least one such downlink. The main Earth Connection status combines direct base-to-DSN and base-to-relay-to-DSN paths; DTE refers only to the former. The complexes are checked independently. A direct link exists only when Earth clears the selected lunar location's modeled terrain horizon <strong>and</strong> the Moon is above that DSN station's geometric horizon at the simulated UTC time. Link beams and connection statistics use this same rule. Ground-station availability, actual antenna pointing, weather, terrain at the station, radio link budget, and mission scheduling are not modeled. Lunar positions use a low-precision analytical ephemeris.</p>
+          <p class="text-slate-300 mt-1">The Madrid (Spain), Goldstone (USA), and Canberra (Australia) complexes are Earth-fixed at their geographic coordinates, rotating only with Earth. Each direct line terminates at its station rather than at Earth's center. The lunar relay orbital planes are modeled in Moon-centered ICRF coordinates, not in the rotating lunar surface frame. Each orbiting relay also checks an independent satellite-to-station straight line against Earth and Moon occultation; a lunar-base-to-relay hop counts as an Earth connection only if it has at least one such downlink. The main Earth Connection status combines direct base-to-DSN and base-to-relay-to-DSN paths; DTE refers only to the former. The complexes are checked independently. A direct link exists only when Earth clears the selected lunar location's modeled terrain horizon <strong>and</strong> the Moon is above that DSN station's geometric horizon at the simulated UTC time. Link beams and connection statistics use this same rule. Ground-station availability, actual antenna pointing, weather, terrain at the station, radio link budget, and mission scheduling are not modeled. Lunar positions use a low-precision analytical ephemeris.</p>
         </div>
         <div>
           <h4 class="font-semibold text-violet-300 uppercase tracking-wider text-[11px]">
-            3. NASA LunaNet / LCRNS Relay Satellites &amp; Frozen Polar Orbits
+            4. NASA LCRNS 3.1 Proposed Reference Constellation
           </h4>
           <p class="text-slate-300 mt-1">
-            • <strong>Elliptical Lunar Frozen Orbits (ELFO):</strong> Three phased LCRNS ELFO spacecraft (<span class="mono text-slate-100">a = 10,935 km, i = 54.5°, e = 0.661, ω = 90°, T = 27.7h</span>) plus ESA/NASA’s <span class="mono text-slate-100">Lunar Pathfinder</span> (<span class="mono text-slate-100">a = 5,740 km, i = 57.8°, e = 0.610, T = 12.0h</span>) orbit the Moon in its moving frame, lingering over the South Pole above a <span class="mono text-slate-100">5.0°</span> elevation mask.
-          </p>
+            • <strong>NASA government reference, NOT launched or operational:</strong> The five proposed vehicles SV-1 to SV-5 are initialized from NASA LCRNS Reference Constellation 3.1, Table 2 (Moon-centered ICRF position km and velocity km/s) at <span class="mono text-slate-100">2027-03-01 00:00 UTC</span>. The exact Table 1 Keplerian elements (Moon Principal Axis frame) appear below. The spacecraft have ~30-hour ELFO periods.<br/>
+            • <strong>Propagation accuracy:</strong> The interactive HTML derives an inertial two-body Keplerian orbit from each NASA state. It does <em>not</em> integrate NASA's recommended DE421 / lunar GRGM-900c 25×25 gravity / Sun + Venus + Earth + Mars + Jupiter + Saturn / solar radiation pressure model. Positions away from the reference epoch and all relay link availability are <strong>illustrative predictions, not NASA-validated ephemerides</strong>. The lunar orientation, terrain horizon, and DSN geometry are also approximate.<br/>
+            • <strong>Visual scale:</strong> Satellite altitudes and Earth–Moon separation use deliberately different drawing scales; all sphere occultation and radio-horizon checks run in physical kilometres. The assumed 5° lunar terminal mask is not an orbital parameter given in the NASA paper.<br/>
+            • <a href="https://www.nasa.gov/wp-content/uploads/2025/08/nasa-lunar-communications-relay-and-navigation-systems-lcrns-reference-constellation-3-1.pdf" target="_blank" rel="noopener noreferrer" class="text-sky-300 underline">NASA LCRNS Reference Constellation 3.1 (source PDF)</a>
+                      </p>
+          <div class="overflow-x-auto mt-2"><table class="w-full text-[10px] mono border-collapse text-left"><thead><tr class="text-violet-300 border-b border-slate-700"><th class="pr-2 py-1">NASA</th><th class="pr-2">a (km)</th><th class="pr-2">e</th><th class="pr-2">i (°)</th><th class="pr-2">Ω (°)</th><th class="pr-2">ω (°)</th><th>ν (°)</th></tr></thead><tbody id="nasa-orbit-parameters"></tbody></table></div>
+          <details class="mt-2"><summary class="cursor-pointer text-violet-300">Exact NASA Table 2 state vectors (ICRF, 2027-03-01 UTC)</summary>
+            <div class="overflow-x-auto mt-1"><table class="w-full text-[10px] mono whitespace-nowrap"><thead><tr class="text-violet-300"><th>SV</th><th>X km</th><th>Y km</th><th>Z km</th><th>Vx km/s</th><th>Vy km/s</th><th>Vz km/s</th></tr></thead><tbody id="nasa-cartesian-states"></tbody></table></div>
+          </details>
         </div>
 
         <div>
           <h4 class="font-semibold text-emerald-300 uppercase tracking-wider text-[11px]">
-            4. How to Independently Verify Results
+            5. How to Independently Verify Results
           </h4>
           <p class="text-slate-300 mt-1">
             • <strong>NASA JPL Horizons (<span class="mono text-sky-300">ssd.jpl.nasa.gov/horizons</span>):</strong> Set Target to <span class="mono">Sun [10]</span> or <span class="mono">Earth [399]</span>, Observer to <span class="mono">@301</span> (Moon) at your pin’s Lat/Lon, and request Table #4 (Apparent Azimuth &amp; Elevation).
@@ -523,59 +534,45 @@
       { id: "ce4", name: "Von Kármán (Far Side)", tag: "Chang’e 4", pole: false, lat: -45.46, lon: 177.60, elev: -5.90 }
     ];
 
-    // NASA LCRNS / LunaNet & ESA Lunar Pathfinder Relay Satellites (Frozen Polar Orbits, ω = 90°)
+    // NASA LCRNS REFERENCE CONSTELLATION 3.1 (proposed government reference design).
+    // Source: Ryden & Volle, NASA GSFC, April 2025, Tables 1-2.
+    // https://www.nasa.gov/wp-content/uploads/2025/08/nasa-lunar-communications-relay-and-navigation-systems-lcrns-reference-constellation-3-1.pdf
+    // Initial Cartesian states: Moon-centered ICRF, epoch 2027-03-01 00:00:00 UTC.
+    // Position units km, velocity units km/s. Keplerian metadata from Table 1
+    // are in the Moon Principal Axis frame, NOT in ICRF; do not mix the angles.
+    // These spacecraft are proposed reference vehicles, not active tracked satellites.
+    const NASA_LCRNS_EPOCH_MS = Date.UTC(2027, 2, 1, 0, 0, 0);
+    const MOON_GM_KM3_S2 = 4902.800066;  // lunar GM for simplified TWO-BODY preview
     const RELAY_SATELLITES = [
       {
-        id: "LCRNS-1",
-        name: "LCRNS-1 (ELFO-A)",
-        aKm: 10935,
-        e: 0.661,
-        incDeg: 54.5,
-        raanDeg: 15,
-        argPeDeg: 90,
-        meanAnom0Deg: 165,
-        periodHours: 27.7,
-        colorHex: 0xa78bfa,
-        cssColor: "#a78bfa"
+        id: "SV-1", name: "NASA LCRNS SV-1", aKm: 11315.936501, e: 0.691982,
+        incDeg: 59.373229, raanDeg: 321.019197, argPeDeg: 92.494031, trueAnomalyDeg: 0.000000,
+        stateICRF: { r: [-198.931445, 386.023132, 3458.355412], v: [-1.539867, 0.022243, -0.091059] },
+        colorHex: 0xa78bfa, cssColor: "#a78bfa"
       },
       {
-        id: "LCRNS-2",
-        name: "LCRNS-2 (ELFO-B)",
-        aKm: 10935,
-        e: 0.661,
-        incDeg: 54.5,
-        raanDeg: 135,
-        argPeDeg: 90,
-        meanAnom0Deg: 285,
-        periodHours: 27.7,
-        colorHex: 0xc084fc,
-        cssColor: "#c084fc"
+        id: "SV-2", name: "NASA LCRNS SV-2", aKm: 11317.948675, e: 0.691982,
+        incDeg: 58.951732, raanDeg: 320.997768, argPeDeg: 92.505016, trueAnomalyDeg: 180.000000,
+        stateICRF: { r: [1089.980598, -2260.918271, -18984.562823], v: [0.280301, -0.004049, 0.016575] },
+        colorHex: 0xc084fc, cssColor: "#c084fc"
       },
       {
-        id: "LCRNS-3",
-        name: "LCRNS-3 (ELFO-C)",
-        aKm: 10935,
-        e: 0.661,
-        incDeg: 54.5,
-        raanDeg: 255,
-        argPeDeg: 90,
-        meanAnom0Deg: 45,
-        periodHours: 27.7,
-        colorHex: 0x38bdf8,
-        cssColor: "#38bdf8"
+        id: "SV-3", name: "NASA LCRNS SV-3", aKm: 11305.413654, e: 0.691982,
+        incDeg: 52.733096, raanDeg: 81.148790, argPeDeg: 92.062891, trueAnomalyDeg: 140.049207,
+        stateICRF: { r: [9187.665852, -260.470721, -8543.222759], v: [0.273629, 0.417588, -0.313828] },
+        colorHex: 0x38bdf8, cssColor: "#38bdf8"
       },
       {
-        id: "Pathfinder",
-        name: "Lunar Pathfinder",
-        aKm: 5740,
-        e: 0.610,
-        incDeg: 57.8,
-        raanDeg: 75,
-        argPeDeg: 90,
-        meanAnom0Deg: 210,
-        periodHours: 12.0,
-        colorHex: 0xf472b6,
-        cssColor: "#f472b6"
+        id: "SV-4", name: "NASA LCRNS SV-4", aKm: 11326.302154, e: 0.691982,
+        incDeg: 52.513419, raanDeg: 81.138818, argPeDeg: 92.068945, trueAnomalyDeg: 195.992393,
+        stateICRF: { r: [6484.019002, 14329.883921, -7966.345594], v: [-0.258433, 0.033951, 0.235264] },
+        colorHex: 0xf472b6, cssColor: "#f472b6"
+      },
+      {
+        id: "SV-5", name: "NASA LCRNS SV-5", aKm: 11307.882863, e: 0.691982,
+        incDeg: 56.310396, raanDeg: 204.889626, argPeDeg: 85.444071, trueAnomalyDeg: 164.007607,
+        stateICRF: { r: [-5074.242314, 14473.022751, -8638.530033], v: [-0.229931, -0.026926, -0.264381] },
+        colorHex: 0x34d399, cssColor: "#34d399"
       }
     ];
     // Official NASA/JPL DSN complex coordinates (representative site center positions).
@@ -589,7 +586,7 @@
     const SOLAR_IRRADIANCE_WM2 = 1361; // Mean irradiance normal to solar rays at 1 AU.
     const DSN_MIN_ELEVATION_DEG = 0; // Geometric, ideal horizon; not actual antenna scheduling.
 
-    const RELAY_MIN_EL_DEG = 5.0; // NASA LCRNS Service Volume II elevation mask
+    const RELAY_MIN_EL_DEG = 5.0; // Assumed lunar-terminal elevation mask; NOT specified in NASA reference 3.1.
 
     const PIN_COLORS = [
       { key: "A", hex: "#fbbf24", threeHex: 0xfbbf24, badgeCls: "bg-amber-400 text-slate-950" },
@@ -617,7 +614,7 @@
       lat: SITES[0].lat,
       lon: SITES[0].lon,
       name: SITES[0].name,
-      startDate: new Date("2026-11-14T12:00:00Z"),
+      startDate: new Date("2027-03-01T00:00:00Z"),
       durationDays: 14,           // 7 | 14 | 29.530589
       scrubFrac: 0,               // 0..1 across durationDays
       isPlaying: false,
@@ -745,7 +742,7 @@
             satWorld.clone().sub(ground).normalize().dot(ground.clone().normalize())))) * RAD;
           // The path STARTS on Earth's surface. A generic sphere-clearance test
           // incorrectly rejects that endpoint (distance == Earth radius) even
-          // when the ray points outward, resulting in 0/4 linked satellites.
+          // when the ray points outward, resulting in zero linked satellites.
           // Positive topocentric elevation is precisely the unobstructed
           // Earth-horizon condition for a spherical Earth: the entire segment
           // from the ground antenna toward the spacecraft stays outside Earth.
@@ -787,42 +784,53 @@
     }
 
     /**
-     * Propagates a Keplerian lunar relay satellite in the MOON_ME selenocentric frame (km).
+     * NASA Table 2 Cartesian states are Moon-centered ICRF at 2027-03-01 00:00 UTC.
+     * Build an osculating 2-body ellipse from each r/v vector, retaining the actual
+     * ICRF orbital plane, epoch phase, and reference position (not invented phasing).
+     * The Table 1 angles are for Moon Principal Axis; they cannot be substituted here.
+     * IMPORTANT: this is a mathematically consistent Keplerian PREVIEW, not the
+     * full DE421 + GRGM-900c + solar/planetary perturbations requested by NASA.
      */
+    function getReferenceTwoBodyOrbit(sat) {
+      if (sat._twoBody) return sat._twoBody;
+      const p0 = new THREE.Vector3(...sat.stateICRF.r);
+      const v0 = new THREE.Vector3(...sat.stateICRF.v);
+      const r0 = p0.length();
+      const a = 1 / (2 / r0 - v0.lengthSq() / MOON_GM_KM3_S2);
+      const h = new THREE.Vector3().crossVectors(p0, v0);
+      const eVector = new THREE.Vector3().crossVectors(v0, h)
+        .multiplyScalar(1 / MOON_GM_KM3_S2).sub(p0.clone().multiplyScalar(1 / r0));
+      const e = eVector.length();
+      if (!(a > R_MOON && e > 0 && e < 1)) throw new Error(`Invalid NASA state for ${sat.id}`);
+      const peri = eVector.normalize();
+      const normal = h.normalize();
+      const transverse = new THREE.Vector3().crossVectors(normal, peri).normalize();
+      const root = Math.sqrt(1 - e * e);
+      const cosE0 = p0.dot(peri) / a + e;
+      const sinE0 = p0.dot(transverse) / (a * root);
+      const E0 = Math.atan2(sinE0, cosE0);
+      const M0 = E0 - e * Math.sin(E0);
+      sat._twoBody = { a, e, peri, transverse, M0,
+        n: Math.sqrt(MOON_GM_KM3_S2 / (a * a * a)) };
+      return sat._twoBody;
+    }
+
     function propagateRelaySatellite(sat, dateObj) {
-      const J2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
-      const elapsedHours = (dateObj.getTime() - J2000) / 3600000;
-      const M = norm360(sat.meanAnom0Deg + (360 / sat.periodHours) * elapsedHours) * DEG;
-
-      // Solve Kepler's Equation: E - e * sin(E) = M
-      let E = M + sat.e * Math.sin(M);
-      for (let iter = 0; iter < 5; iter++) {
-        E = E - (E - sat.e * Math.sin(E) - M) / (1 - sat.e * Math.cos(E));
+      const o = getReferenceTwoBodyOrbit(sat);
+      const secondsFromEpoch = (dateObj.getTime() - NASA_LCRNS_EPOCH_MS) / 1000;
+      const rawM = o.M0 + o.n * secondsFromEpoch;
+      const M = Math.atan2(Math.sin(rawM), Math.cos(rawM));
+      let E = M + o.e * Math.sin(M);
+      for (let i = 0; i < 12; i++) {
+        const correction = (E - o.e * Math.sin(E) - M) / (1 - o.e * Math.cos(E));
+        E -= correction;
+        if (Math.abs(correction) < 1e-13) break;
       }
-
-      const cosE = Math.cos(E);
-      const sinE = Math.sin(E);
-      const rKm = sat.aKm * (1 - sat.e * cosE);
-      const nu = Math.atan2(Math.sqrt(1 - sat.e * sat.e) * sinE, cosE - sat.e);
-
-      const u = nu + sat.argPeDeg * DEG;
-      const inc = sat.incDeg * DEG;
-      // Fixed inertial node for the nominal two-body model. Do not rotate with lunar surface.
-      // Long-term nodal precession requires a validated high-fidelity lunar gravity model.
-      const raan = sat.raanDeg * DEG;
-
-      const cosO = Math.cos(raan);
-      const sinO = Math.sin(raan);
-      const cosU = Math.cos(u);
-      const sinU = Math.sin(u);
-      const cosI = Math.cos(inc);
-      const sinI = Math.sin(inc);
-
-      const xKm = rKm * (cosO * cosU - sinO * sinU * cosI);
-      const yKm = rKm * (sinO * cosU + cosO * sinU * cosI);
-      const zKm = rKm * (sinU * sinI);
-
-      return { xKm, yKm, zKm, rKm };
+      const x = o.a * (Math.cos(E) - o.e);
+      const y = o.a * Math.sqrt(1 - o.e * o.e) * Math.sin(E);
+      const pos = o.peri.clone().multiplyScalar(x)
+        .addScaledVector(o.transverse, y);
+      return { xKm: pos.x, yKm: pos.y, zKm: pos.z, rKm: pos.length() };
     }
 
     /**
@@ -1315,9 +1323,16 @@
       );
     }
 
-    // Inertial ecliptic (X,Y,Z pole) -> Three.js inertial scene (X,Y-up,-Z).
+    // NASA Table 2 vectors are ICRF/equatorial. Convert to the scene's mean
+    // J2000 ecliptic frame (23.439291° obliquity), then Three.js X,Y-up,-Z.
+    // This explicit frame conversion is essential for satellite--DSN geometry.
     function inertialSatelliteVector(pos, scale = 1) {
-      return new THREE.Vector3(pos.xKm * scale, pos.zKm * scale, -pos.yKm * scale);
+      const c = Math.cos(23.439291111 * DEG);
+      const sn = Math.sin(23.439291111 * DEG);
+      const eqX = pos.xKm * scale, eqY = pos.yKm * scale, eqZ = pos.zKm * scale;
+      const eclY = c * eqY + sn * eqZ;
+      const eclZ = -sn * eqY + c * eqZ;
+      return new THREE.Vector3(eqX, eclZ, -eclY);
     }
 
     function inertialSatelliteToLunar(pos, eph) {
@@ -1328,7 +1343,8 @@
     // following the instantaneous direction of the Moon.
     function earthFixedToWorldQuaternion(geo, moonPos) {
       const toMoon = moonPos.clone().normalize();
-      const axis = new THREE.Vector3(0, Math.cos(23.439291 * DEG), Math.sin(23.439291 * DEG));
+      // ICRF north pole expressed in the same Y-up ecliptic scene frame.
+      const axis = new THREE.Vector3(0, Math.cos(23.439291 * DEG), -Math.sin(23.439291 * DEG));
       const worldZ = new THREE.Vector3().crossVectors(toMoon, axis).normalize();
       const worldY = new THREE.Vector3().crossVectors(worldZ, toMoon).normalize();
       const worldFrame = new THREE.Matrix4().makeBasis(toMoon, worldY, worldZ);
@@ -1653,13 +1669,14 @@
       satLinkGroup = new THREE.Group();
       moonSystemGroup.add(satLinkGroup);
 
-      const refEpoch = new Date("2026-11-14T12:00:00Z");
+      const refEpoch = new Date(NASA_LCRNS_EPOCH_MS);
 
       RELAY_SATELLITES.forEach(sat => {
         const orbitPts = [];
         const steps = 96;
+        const nominalPeriodHours = 2 * Math.PI * Math.sqrt(Math.pow(sat.aKm, 3) / MOON_GM_KM3_S2) / 3600;
         for (let s = 0; s <= steps; s++) {
-          const t = new Date(refEpoch.getTime() + (s / steps) * sat.periodHours * 3600000);
+          const t = new Date(refEpoch.getTime() + (s / steps) * nominalPeriodHours * 3600000);
           const pos = propagateRelaySatellite(sat, t);
           const visualR = 1.0 + ((pos.rKm / R_MOON) - 1.0) * 0.42;
           orbitPts.push(inertialSatelliteVector(pos, visualR / pos.rKm));
@@ -2524,7 +2541,18 @@
       const visRelays = sample.visibleRelays || [];
       const linkedRelays = sample.linkedRelays || [];
       const relayCard = document.getElementById("relay-card");
-      document.getElementById("relay-count-live").textContent = `${linkedRelays.length}/4 Linked · ${visRelays.length} Overhead`;
+      document.getElementById("relay-count-live").textContent = `${linkedRelays.length}/${RELAY_SATELLITES.length} Linked · ${visRelays.length} Overhead`;
+      document.getElementById("lcrns-live-table").innerHTML = (sample.allRelays || []).map(sat => {
+        const altitudeKm = Math.round(sat.rKm - R_MOON);
+        const local = `${sat.el.toFixed(1)}°`;
+        const status = sat.relayConnected ? "LINKED" : sat.visible ? "OVERHEAD" : "NO LOS";
+        const cls = sat.relayConnected ? "text-emerald-300" : sat.visible ? "text-amber-300" : "text-slate-500";
+        return `<div class="flex justify-between gap-2"><span style="color:${sat.cssColor}">${sat.id} · ${altitudeKm.toLocaleString('en-US')} km · ${local}</span><span class="${cls}">${status}</span></div>`;
+      }).join("");
+      const daysFromNASA = Math.abs(sample.tMs - NASA_LCRNS_EPOCH_MS) / 86400000;
+      document.getElementById("lcrns-model-caution").textContent = daysFromNASA < 0.001
+        ? "NASA reference epoch · Table 2 initial states"
+        : `Kepler-only estimate · ${daysFromNASA.toFixed(1)}d from NASA epoch (not tracked data)`;
       if (linkedRelays.length > 0) {
         relayCard.className = "rounded-xl p-2 border border-violet-400/35 bg-violet-500/10 transition-colors";
         document.getElementById("relay-status").textContent = linkedRelays
@@ -2546,7 +2574,7 @@
               : "Comms Blackout";
       const hopSummary = (sample.satDsnLinks || []).length;
       document.getElementById("relay-detail").textContent =
-        `Mask ≥5.0° · ${hopSummary} sat→DSN paths · Mode: ${linkMode}`;
+        `Assumed mask ≥5.0° · ${hopSummary} sat→DSN paths · Mode: ${linkMode}`;
 
       // 6. Simulated Timestamp Readout
       const iso = simDate.toISOString();
@@ -2754,7 +2782,7 @@
         dateInput.value = state.startDate.toISOString().slice(0, 10);
         dateInput.onchange = e => {
           if (e.target.value) {
-            state.startDate = new Date(`${e.target.value}T12:00:00Z`);
+            state.startDate = new Date(`${e.target.value}T00:00:00Z`);
             rebuildActiveWindow();
           }
         };
@@ -2803,6 +2831,20 @@
           rightVisible = !rightVisible;
           document.getElementById("right-panel").style.transform = rightVisible ? "translateX(0)" : "translateX(115%)";
         };
+
+        // Exact NASA Table 1 reference elements, in Moon Principal Axis coordinates.
+        document.getElementById("nasa-orbit-parameters").innerHTML = RELAY_SATELLITES.map(sat =>
+          `<tr class="border-b border-slate-800/70"><td class="pr-2 py-1">${sat.id}</td>` +
+          `<td class="pr-2">${sat.aKm.toFixed(3)}</td><td class="pr-2">${sat.e.toFixed(6)}</td>` +
+          `<td class="pr-2">${sat.incDeg.toFixed(3)}</td><td class="pr-2">${sat.raanDeg.toFixed(3)}</td>` +
+          `<td class="pr-2">${sat.argPeDeg.toFixed(3)}</td><td>${sat.trueAnomalyDeg.toFixed(3)}</td></tr>`
+        ).join("");
+        document.getElementById("nasa-cartesian-states").innerHTML = RELAY_SATELLITES.map(sat =>
+          `<tr class="border-b border-slate-800/70"><td>${sat.id}</td>` +
+          sat.stateICRF.r.map(n => `<td class="pr-2 py-1">${n.toFixed(6)}</td>`).join("") +
+          sat.stateICRF.v.map(n => `<td class="pr-2 py-1">${n.toFixed(6)}</td>`).join("") +
+          `</tr>`
+        ).join("");
 
         // Initialize 3D Stage & Run First Evaluation
         init3D();
